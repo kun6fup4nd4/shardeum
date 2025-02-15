@@ -45,10 +45,10 @@ export class BlockBuilder {
     private checkpointed = false;
     private blockStatus: BlockStatus = { status: BuildStatus.Pending };
     get transactionReceipts(): (PreByzantiumTxReceipt | PostByzantiumTxReceipt | EIP4844BlobTxReceipt)[] {
-        return this.transactionResults.map((result) => result.receipt);
+return this.transactionResults.map((result) => result.receipt);
     }
     get minerValue(): bigint {
-        return this._minerValue;
+return this._minerValue;
     }
     constructor(vm: VM, opts: BuildBlockOpts) {
         this.vm = vm;
@@ -61,10 +61,10 @@ export class BlockBuilder {
             timestamp: opts.headerData?.timestamp ?? Math.round(Date.now() / 1000),
         };
         this.withdrawals = opts.withdrawals?.map(Withdrawal.fromWithdrawalData);
-        if (this.vm.common.isActivatedEIP(1559) === true &&
+if (this.vm.common.isActivatedEIP(1559) === true &&
             typeof this.headerData.baseFeePerGas === 'undefined')
             this.headerData.baseFeePerGas = opts.parentBlock.header.calcNextBaseFee();
-        if (this.vm.common.isActivatedEIP(4844) === true &&
+if (this.vm.common.isActivatedEIP(4844) === true &&
             typeof this.headerData.excessBlobGas === 'undefined')
             this.headerData.excessBlobGas = opts.parentBlock.header.calcNextExcessBlobGas();
     }
@@ -72,19 +72,19 @@ export class BlockBuilder {
      * Throws if the block has already been built or reverted.
      */
     private checkStatus(): void {
-        if (this.blockStatus.status === BuildStatus.Build)
+if (this.blockStatus.status === BuildStatus.Build)
             throw new Error('Block has already been built');
-        if (this.blockStatus.status === BuildStatus.Reverted)
+if (this.blockStatus.status === BuildStatus.Reverted)
             throw new Error('State has already been reverted');
     }
     public getStatus(): BlockStatus {
-        return this.blockStatus;
+return this.blockStatus;
     }
     /**
      * Calculates and returns the transactionsTrie for the block.
      */
     public async transactionsTrie(): Promise<Uint8Array> {
-        return Block.genTransactionsTrieRoot(this.transactions);
+return Block.genTransactionsTrieRoot(this.transactions);
     }
     /**
      * Calculates and returns the logs bloom for the block.
@@ -95,7 +95,7 @@ export class BlockBuilder {
             // Combine blooms via bitwise OR
             bloom.or(txResult.bloom);
         }
-        return bloom.bitvector;
+return bloom.bitvector;
     }
     /**
      * Calculates and returns the receiptTrie for the block.
@@ -107,7 +107,7 @@ export class BlockBuilder {
             const encodedReceipt = encodeReceipt(txResult.receipt, tx.type);
             await receiptTrie.put(RLP.encode(i), encodedReceipt);
         }
-        return receiptTrie.root();
+return receiptTrie.root();
     }
     /**
      * Adds the block miner reward to the coinbase account.
@@ -130,7 +130,7 @@ export class BlockBuilder {
             // as per the implementation of other clients geth/nethermind
             // although this should never happen as no withdrawals with 0
             // amount should ever land up here.
-            if (amount === BigInt(0))
+if (amount === BigInt(0))
                 continue;
             // Withdrawal amount is represented in Gwei so needs to be
             // converted to wei
@@ -147,7 +147,7 @@ export class BlockBuilder {
         skipHardForkValidation?: boolean;
     } = {}): Promise<RunTxResult> {
         this.checkStatus();
-        if (!this.checkpointed) {
+if (!this.checkpointed) {
             await this.vm.evm.journal.checkpoint();
             this.checkpointed = true;
         }
@@ -157,17 +157,17 @@ export class BlockBuilder {
         const blobGasLimit = this.vm.common.param('gasConfig', 'maxblobGasPerBlock');
         const blobGasPerBlob = this.vm.common.param('gasConfig', 'blobGasPerBlob');
         const blockGasRemaining = blockGasLimit - this.gasUsed;
-        if (tx.gasLimit > blockGasRemaining)
+if (tx.gasLimit > blockGasRemaining)
             throw new Error('tx has a higher gas limit than the remaining gas in the block');
         let blobGasUsed = undefined;
-        if (tx instanceof BlobEIP4844Transaction) {
-            if (this.blockOpts.common?.isActivatedEIP(4844) !== true)
+if (tx instanceof BlobEIP4844Transaction) {
+if (this.blockOpts.common?.isActivatedEIP(4844) !== true)
                 throw Error('eip4844 not activated yet for adding a blob transaction');
             const blobTx = tx as BlobEIP4844Transaction;
             // Guard against the case if a tx came into the pool without blobs i.e. network wrapper payload
-            if (blobTx.blobs === undefined)
+if (blobTx.blobs === undefined)
                 throw new Error('blobs missing for 4844 transaction');
-            if (this.blobGasUsed + BigInt(blobTx.numBlobs()) * blobGasPerBlob > blobGasLimit)
+if (this.blobGasUsed + BigInt(blobTx.numBlobs()) * blobGasPerBlob > blobGasLimit)
                 throw new Error('block blob gas limit reached');
             blobGasUsed = this.blobGasUsed;
         }
@@ -181,7 +181,7 @@ export class BlockBuilder {
         const block = Block.fromBlockData(blockData, this.blockOpts);
         const result = await this.vm.runTx({ tx, block, skipHardForkValidation });
         // If tx is a blob transaction, remove blobs/kzg commitments before adding to block per EIP-4844
-        if (tx instanceof BlobEIP4844Transaction) {
+if (tx instanceof BlobEIP4844Transaction) {
             const txData = tx as BlobEIP4844Transaction;
             this.blobGasUsed += BigInt(txData.versionedHashes.length) * blobGasPerBlob;
             tx = BlobEIP4844Transaction.minimalFromNetworkWrapper(txData, {
@@ -192,13 +192,13 @@ export class BlockBuilder {
         this.transactionResults.push(result);
         this.gasUsed += result.totalGasSpent;
         this._minerValue += result.minerValue;
-        return result;
+return result;
     }
     /**
      * Reverts the checkpoint on the StateManager to reset the state from any transactions that have been run.
      */
     async revert(): Promise<void> {
-        if (this.checkpointed) {
+if (this.checkpointed) {
             await this.vm.evm.journal.revert();
             this.checkpointed = false;
         }
@@ -219,7 +219,7 @@ export class BlockBuilder {
         this.checkStatus();
         const blockOpts = this.blockOpts;
         const consensusType = this.vm.common.consensusType();
-        if (consensusType === ConsensusType.ProofOfWork)
+if (consensusType === ConsensusType.ProofOfWork)
             await this.rewardMiner();
         await this.processWithdrawals();
         const stateRoot = await this.vm.stateManager.getStateRoot();
@@ -233,8 +233,7 @@ export class BlockBuilder {
         // timestamp should already be set in constructor
         const timestamp = this.headerData.timestamp ?? BigInt(0);
         let blobGasUsed = undefined;
-        if (this.vm.common.isActivatedEIP(4844) === true)
-            blobGasUsed = this.blobGasUsed;
+if (this.vm.common.isActivatedEIP(4844) === true) blobGasUsed = this.blobGasUsed;
         const headerData = {
             ...this.headerData,
             stateRoot,
@@ -247,7 +246,7 @@ export class BlockBuilder {
             // correct excessBlobGas should already be part of headerData used above
             blobGasUsed,
         };
-        if (consensusType === ConsensusType.ProofOfWork) {
+if (consensusType === ConsensusType.ProofOfWork) {
             headerData.nonce = sealOpts?.nonce ?? headerData.nonce;
             headerData.mixHash = sealOpts?.mixHash ?? headerData.mixHash;
         }
@@ -257,18 +256,18 @@ export class BlockBuilder {
             withdrawals: this.withdrawals,
         };
         const block = Block.fromBlockData(blockData, blockOpts);
-        if (this.blockOpts.putBlockIntoBlockchain === true)
+if (this.blockOpts.putBlockIntoBlockchain === true)
             await this.vm.blockchain.putBlock(block);
         this.blockStatus = { status: BuildStatus.Build, block };
-        if (this.checkpointed) {
+if (this.checkpointed) {
             await this.vm.evm.journal.commit();
             this.checkpointed = false;
         }
-        return block;
+return block;
     }
     async initState(): Promise<void> {
-        if (this.vm.common.isActivatedEIP(4788)) {
-            if (!this.checkpointed) {
+if (this.vm.common.isActivatedEIP(4788)) {
+if (!this.checkpointed) {
                 await this.vm.evm.journal.checkpoint();
                 this.checkpointed = true;
             }
@@ -283,5 +282,5 @@ export class BlockBuilder {
 export async function buildBlock(this: VM, opts: BuildBlockOpts): Promise<BlockBuilder> {
     const blockBuilder = new BlockBuilder(this, opts);
     await blockBuilder.initState();
-    return blockBuilder;
+return blockBuilder;
 }

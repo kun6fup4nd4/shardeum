@@ -19,7 +19,7 @@ export async function init(baseDir: string, dbPath: string): Promise<void> {
     //we have to lazy init storage, because this init happens very early
 }
 export async function lazyInit(): Promise<void> {
-    if (isInitialized === false) {
+if (isInitialized === false) {
         await storage.init();
         isInitialized = true;
     }
@@ -35,75 +35,72 @@ export async function fetchAccountDataFromCollector(accountId: string, blockNumb
                 account: WrappedEVMAccount;
             }[];
         }>(apiQuery, {});
-        if (!response.data.success)
+if (!response.data.success)
             throw new Error('Collector failed to return account data');
-        if (!response.data.accounts && response.data.accounts.length === 0)
+if (!response.data.accounts && response.data.accounts.length === 0)
             throw new Error('Collector returned no account data');
-        return response.data.accounts[0].account;
+return response.data.accounts[0].account;
     }
     catch (error) {
-        return null;
+return null;
     }
 }
 export async function getAccount(address: string): Promise<WrappedEVMAccount> {
-    if (isArchiverMode()) {
+if (isArchiverMode()) {
         const blockContext = getContextValue<Block>('block');
-        if (blockContext != undefined) {
+if (blockContext != undefined) {
             const accountData = await fetchAccountDataFromCollector(address, '0x' + blockContext.header.number.toString(16));
-            return accountData;
+return accountData;
         }
     }
-    if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.UseDBForAccounts === true) {
         const account = await storage.getAccountsEntry(address);
-        if (!account)
-            return;
-        if (typeof account.data === 'string')
+if (!account) return;
+if (typeof account.data === 'string')
             account.data = Utils.safeJsonParse(account.data) as WrappedEVMAccount;
         setCachedRIAccount(account);
-        return account.data;
+return account.data;
     }
-    else
+else
         // eslint-disable-next-line security/detect-object-injection
-        return accounts[address];
+return accounts[address];
     //return null
 }
 export async function getAccountTimestamp(address: string): Promise<number> {
-    if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.UseDBForAccounts === true) {
         //todo replace with specific sql query
         const account = await storage.getAccountsEntry(address);
-        return account.timestamp;
+return account.timestamp;
     }
-    else
+else
         // eslint-disable-next-line security/detect-object-injection
-        return accounts[address]?.timestamp;
+return accounts[address]?.timestamp;
 }
 export async function accountExists(address: string): Promise<boolean> {
-    if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.UseDBForAccounts === true) {
         //todo replace with specific sql query, or even a shardus cache check
         const account = await storage.getAccountsEntry(address);
-        return account != null;
+return account != null;
     }
-    else
+else
         // eslint-disable-next-line security/detect-object-injection
-        return accounts[address] != null;
+return accounts[address] != null;
 }
 export let cachedNetworkAccount: NetworkAccount; // an actual obj
 export async function getCachedNetworkAccount(): Promise<NetworkAccount> {
-    if (isServiceMode())
-        return (await getAccount(networkAccount)) as unknown as NetworkAccount;
-    return cachedNetworkAccount;
+if (isServiceMode()) return (await getAccount(networkAccount)) as unknown as NetworkAccount;
+return cachedNetworkAccount;
 }
 export async function setAccount(address: string, account: WrappedEVMAccount): Promise<void> {
     try {
-        if (ShardeumFlags.debugGlobalAccountUpdateFail && address === networkAccount)
-            return;
-        if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.debugGlobalAccountUpdateFail && address === networkAccount) return;
+if (ShardeumFlags.UseDBForAccounts === true) {
             const accountEntry = {
                 accountId: address,
                 timestamp: account.timestamp,
                 data: account,
             };
-            if (account.timestamp === 0)
+if (account.timestamp === 0)
                 throw new Error(`setAccount timestamp should not be 0. accountId: ${address}, data: ${JSON.stringify(account, null, '  ')}`);
             try {
                 await storage.createOrReplaceAccountEntry(accountEntry);
@@ -113,7 +110,7 @@ export async function setAccount(address: string, account: WrappedEVMAccount): P
                 throw e;
             }
             setCachedRIAccount(accountEntry);
-            if (address === networkAccount) {
+if (address === networkAccount) {
                 cachedNetworkAccount = account as unknown as NetworkAccount;
                 cachedNetworkAccount = fixBigIntLiteralsToBigInt(cachedNetworkAccount);
                 // if (typeof cachedNetworkAccount.current.stakeRequiredUsd === 'string') {
@@ -133,7 +130,7 @@ export async function setAccount(address: string, account: WrappedEVMAccount): P
                 // }
             }
         }
-        else
+else
             // eslint-disable-next-line security/detect-object-injection
             accounts[address] = account;
     }
@@ -144,54 +141,49 @@ export const setCachedNetworkAccount = (account: NetworkAccount): void => {
     cachedNetworkAccount = account;
 };
 export async function debugGetAllAccounts(): Promise<WrappedEVMAccount[]> {
-    if (ShardeumFlags.UseDBForAccounts === true)
-        return (await storage.debugSelectAllAccountsEntry()) as unknown as WrappedEVMAccount[];
-    else
-        return Object.values(accounts);
+if (ShardeumFlags.UseDBForAccounts === true) return (await storage.debugSelectAllAccountsEntry()) as unknown as WrappedEVMAccount[];
+else return Object.values(accounts);
     //return null
 }
 export async function clearAccounts(): Promise<void> {
-    if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.UseDBForAccounts === true) {
         //This lazy init is not ideal.. we only know this is called because of special knowledge
         //Would be much better to make a specific api that is called at the right time before data sync
         await lazyInit();
         await storage.deleteAccountsEntry();
     }
-    else
-        accounts = {};
+else accounts = {};
 }
 export async function queryAccountsEntryByRanges(accountStart, accountEnd, maxRecords): Promise<WrappedEVMAccount[]> {
-    if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.UseDBForAccounts === true) {
         const processedResults = [];
         const results = await storage.queryAccountsEntryByRanges(accountStart, accountEnd, maxRecords);
         for (const result of results) {
-            if (typeof result.data === 'string')
+if (typeof result.data === 'string')
                 result.data = Utils.safeJsonParse(result.data);
             processedResults.push(result.data);
         }
-        return processedResults;
+return processedResults;
     }
-    else
+else
         throw Error('not supported here');
 }
 export async function queryAccountsEntryByRanges2(accountStart, accountEnd, tsStart, tsEnd, maxRecords, offset, accountOffset): Promise<WrappedEVMAccount[]> {
-    if (ShardeumFlags.UseDBForAccounts === true) {
+if (ShardeumFlags.UseDBForAccounts === true) {
         const processedResults = [];
         let results;
-        if (accountOffset != null && accountOffset.length > 0)
-            results = await storage.queryAccountsEntryByRanges3(accountStart, accountEnd, tsStart, tsEnd, maxRecords, accountOffset);
-        else
-            results = await storage.queryAccountsEntryByRanges2(accountStart, accountEnd, tsStart, tsEnd, maxRecords, offset);
+if (accountOffset != null && accountOffset.length > 0) results = await storage.queryAccountsEntryByRanges3(accountStart, accountEnd, tsStart, tsEnd, maxRecords, accountOffset);
+else results = await storage.queryAccountsEntryByRanges2(accountStart, accountEnd, tsStart, tsEnd, maxRecords, offset);
         for (const result of results) {
-            if (typeof result.data === 'string')
+if (typeof result.data === 'string')
                 result.data = Utils.safeJsonParse(result.data);
             processedResults.push(result.data);
         }
-        return processedResults;
+return processedResults;
     }
-    else
+else
         throw Error('not supported here');
 }
 export async function checkDatabaseHealth(): Promise<boolean> {
-    return storage.checkDatabaseHealth();
+return storage.checkDatabaseHealth();
 }

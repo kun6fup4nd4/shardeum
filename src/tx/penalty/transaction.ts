@@ -20,12 +20,9 @@ export async function injectPenaltyTX(shardus: Shardus, eventData: ShardusTypes.
     status: number;
 }> {
     let violationType: ViolationType;
-    if (eventData.type === 'node-left-early')
-        violationType = ViolationType.LeftNetworkEarly;
-    else if (eventData.type === 'node-refuted')
-        violationType = ViolationType.NodeRefuted;
-    else if (eventData.type === 'node-sync-timeout')
-        violationType = ViolationType.SyncingTooLong;
+if (eventData.type === 'node-left-early') violationType = ViolationType.LeftNetworkEarly;
+else if (eventData.type === 'node-refuted') violationType = ViolationType.NodeRefuted;
+else if (eventData.type === 'node-sync-timeout') violationType = ViolationType.SyncingTooLong;
     const unsignedTx = {
         reportedNodeId: eventData.nodeId,
         reportedNodePublickKey: eventData.publicKey,
@@ -37,16 +34,14 @@ export async function injectPenaltyTX(shardus: Shardus, eventData: ShardusTypes.
         internalTXType: InternalTXType.Penalty,
     };
     const wrapeedNodeAccount: ShardusTypes.WrappedDataFromQueue = await shardus.getLocalOrRemoteAccount(unsignedTx.reportedNodePublickKey);
-    if (!wrapeedNodeAccount)
-        return {
+if (!wrapeedNodeAccount) return {
             success: false,
             reason: 'Penalty Node Account not found',
             status: 404,
         };
-    if (wrapeedNodeAccount && isNodeAccount2(wrapeedNodeAccount.data))
+if (wrapeedNodeAccount && isNodeAccount2(wrapeedNodeAccount.data))
         unsignedTx.operatorEVMAddress = wrapeedNodeAccount.data.nominator;
-    else
-        return {
+else return {
             success: false,
             reason: 'Operator address could not be found for penalty node',
             status: 404,
@@ -67,18 +62,17 @@ export async function injectPenaltyTX(shardus: Shardus, eventData: ShardusTypes.
     const closestNodes = shardus.getClosestNodes(eventData.publicKey, ShardeumFlags.numberOfNodesToInjectPenaltyTx);
     const ourId = shardus.getNodeId();
     const isLuckyNode = closestNodes.some((nodeId) => nodeId === ourId);
-    if (!isLuckyNode)
-        return;
+if (!isLuckyNode) return;
     const waitTime = futureTimestamp - shardeumGetTime();
     // since we have to pick a future timestamp, we need to wait until it is time to submit the signedTx
     await sleep(waitTime);
-    if (ShardeumFlags.VerboseLogs) {
+if (ShardeumFlags.VerboseLogs) {
     }
     const result = await shardus.put(signedTx);
-    return result;
+return result;
 }
 function recordPenaltyTX(txId: string, tx: PenaltyTX): void {
-    if (penaltyTxsMap.has(txId) === false)
+if (penaltyTxsMap.has(txId) === false)
         penaltyTxsMap.set(txId, tx);
 }
 /**
@@ -90,19 +84,19 @@ function isProcessedPenaltyTx(tx: PenaltyTX, nodeAccount: NodeAccount2): {
 } {
     switch (tx.violationType) {
         case ViolationType.LeftNetworkEarly:
-            return {
+return {
                 isProcessed: nodeAccount.nodeAccountStats.lastPenaltyTime >=
                     (tx.violationData as LeftNetworkEarlyViolationData).nodeDroppedTime,
                 eventTime: (tx.violationData as LeftNetworkEarlyViolationData).nodeDroppedTime,
             };
         case ViolationType.NodeRefuted:
-            return {
+return {
                 isProcessed: nodeAccount.nodeAccountStats.lastPenaltyTime >=
                     (tx.violationData as NodeRefutedViolationData).nodeRefutedTime,
                 eventTime: (tx.violationData as NodeRefutedViolationData).nodeRefutedTime,
             };
         case ViolationType.SyncingTooLong:
-            return {
+return {
                 isProcessed: nodeAccount.nodeAccountStats.lastPenaltyTime >=
                     (tx.violationData as SyncingTimeoutViolationData).nodeDroppedTime,
                 eventTime: (tx.violationData as SyncingTimeoutViolationData).nodeDroppedTime,
@@ -116,7 +110,7 @@ export function clearOldPenaltyTxs(shardus: Shardus): void {
     const now = shardus.shardusGetTime();
     for (const [txId, tx] of penaltyTxsMap.entries()) {
         const cycleDuration = config.server.p2p.cycleDuration * 1000;
-        if (now - tx.timestamp > 5 * cycleDuration) {
+if (now - tx.timestamp > 5 * cycleDuration) {
             penaltyTxsMap.delete(txId);
             deleteCount++;
         }
@@ -127,49 +121,41 @@ export function validatePenaltyTX(txId: string, tx: PenaltyTX, isApply = false):
     reason: string;
 } {
     const errors = verifyPayload(AJVSchemaEnum.PenaltyTx, tx);
-    if (errors != null)
-        return { isValid: false, reason: 'Invalid penalty tx' };
+if (errors != null) return { isValid: false, reason: 'Invalid penalty tx' };
     // this check should happen only for exe nodes applying the penalty tx
-    if (isApply) {
+if (isApply) {
         // check if we have this penalty tx stored in the Map
         const preRecordedfPenaltyTX = penaltyTxsMap.get(txId);
-        if (preRecordedfPenaltyTX == null)
-            return { isValid: false, reason: 'Penalty TX not found in penaltyTxsMap of exe node' };
+if (preRecordedfPenaltyTX == null) return { isValid: false, reason: 'Penalty TX not found in penaltyTxsMap of exe node' };
     }
-    if (tx.violationType === ViolationType.LeftNetworkEarly && AccountsStorage.cachedNetworkAccount.current.slashing.enableLeftNetworkEarlySlashing === false)
-        return { isValid: false, reason: 'LeftNetworkEarly slashing is disabled' };
-    if (tx.violationType === ViolationType.SyncingTooLong && AccountsStorage.cachedNetworkAccount.current.slashing.enableSyncTimeoutSlashing === false)
-        return { isValid: false, reason: 'Sync timeout slashing is disabled' };
-    if (tx.violationType === ViolationType.NodeRefuted && AccountsStorage.cachedNetworkAccount.current.slashing.enableNodeRefutedSlashing === false)
-        return { isValid: false, reason: 'Refuted node slashing is disabled' };
+if (tx.violationType === ViolationType.LeftNetworkEarly && AccountsStorage.cachedNetworkAccount.current.slashing.enableLeftNetworkEarlySlashing === false) return { isValid: false, reason: 'LeftNetworkEarly slashing is disabled' };
+if (tx.violationType === ViolationType.SyncingTooLong && AccountsStorage.cachedNetworkAccount.current.slashing.enableSyncTimeoutSlashing === false) return { isValid: false, reason: 'Sync timeout slashing is disabled' };
+if (tx.violationType === ViolationType.NodeRefuted && AccountsStorage.cachedNetworkAccount.current.slashing.enableNodeRefutedSlashing === false) return { isValid: false, reason: 'Refuted node slashing is disabled' };
     try {
-        if (!crypto.verifyObj(tx))
-            return { isValid: false, reason: 'Invalid signature for Penalty tx' };
+if (!crypto.verifyObj(tx)) return { isValid: false, reason: 'Invalid signature for Penalty tx' };
     }
     catch (e) {
-        return { isValid: false, reason: 'Invalid signature for Penalty tx' };
+return { isValid: false, reason: 'Invalid signature for Penalty tx' };
     }
-    return { isValid: true, reason: '' };
+return { isValid: true, reason: '' };
 }
 export async function applyPenaltyTX(shardus, tx: PenaltyTX, wrappedStates: WrappedStates, txId: string, txTimestamp: number, applyResponse: ShardusTypes.ApplyResponse): Promise<void> {
     const isValidRequest = validatePenaltyTX(txId, tx, true);
-    if (!isValidRequest) {
+if (!isValidRequest) {
         shardus.applyResponseSetFailed(applyResponse, `applyPenaltyTX failed validatePenaltyTX reportedNode: ${tx.reportedNodePublickKey} reason: ${isValidRequest.reason}`);
-        return;
+return;
     }
     const nodeShardusAddress = tx.reportedNodePublickKey;
     /* eslint-disable security/detect-object-injection */
     let nodeAccount: NodeAccount2;
-    if (isNodeAccount2(wrappedStates[nodeShardusAddress].data))
-        nodeAccount = wrappedStates[nodeShardusAddress].data as NodeAccount2;
+if (isNodeAccount2(wrappedStates[nodeShardusAddress].data)) nodeAccount = wrappedStates[nodeShardusAddress].data as NodeAccount2;
     const operatorShardusAddress = toShardusAddress(tx.operatorEVMAddress, AccountType.Account);
     let operatorAccount: WrappedEVMAccount;
-    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(wrappedStates[operatorShardusAddress].data))
-        operatorAccount = wrappedStates[operatorShardusAddress].data as WrappedEVMAccount;
+if (WrappedEVMAccountFunctions.isWrappedEVMAccount(wrappedStates[operatorShardusAddress].data)) operatorAccount = wrappedStates[operatorShardusAddress].data as WrappedEVMAccount;
     const { isProcessed, eventTime } = isProcessedPenaltyTx(tx, nodeAccount);
-    if (isProcessed) {
+if (isProcessed) {
         shardus.applyResponseSetFailed(applyResponse, `applyPenaltyTX failed isProcessedPenaltyTx reportedNode: ${tx.reportedNodePublickKey}`);
-        return;
+return;
     }
     //TODO should we check if it was already penalized?
     const penaltyAmount = getPenaltyForViolation(tx, nodeAccount.stakeLock);
@@ -179,7 +165,7 @@ export async function applyPenaltyTX(shardus, tx: PenaltyTX, wrappedStates: Wrap
         amount: penaltyAmount,
         timestamp: eventTime,
     });
-    if (tx.violationType === ViolationType.LeftNetworkEarly && nodeAccount.rewardStartTime > 0) {
+if (tx.violationType === ViolationType.LeftNetworkEarly && nodeAccount.rewardStartTime > 0) {
         nodeAccount.rewardEndTime = (tx.violationData as LeftNetworkEarlyViolationData)?.nodeDroppedTime;
         nodeAccount.nodeAccountStats.history.push({
             b: nodeAccount.rewardStartTime,
@@ -200,19 +186,17 @@ export async function applyPenaltyTX(shardus, tx: PenaltyTX, wrappedStates: Wrap
     await shardeumState.putAccount(operatorEVMAddress, operatorAccount.account);
     await shardeumState.commit();
     //TODO should we check for existing funds?
-    if (ShardeumFlags.useAccountWrites) {
+if (ShardeumFlags.useAccountWrites) {
         let wrappedChangedNodeAccount: ShardusTypes.WrappedData;
-        if (WrappedEVMAccountFunctions.isInternalAccount(nodeAccount))
-            wrappedChangedNodeAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(nodeAccount);
+if (WrappedEVMAccountFunctions.isInternalAccount(nodeAccount)) wrappedChangedNodeAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(nodeAccount);
         shardus.applyResponseAddChangedAccount(applyResponse, nodeShardusAddress, wrappedChangedNodeAccount, txId, txTimestamp);
         let wrappedChangedOperatorAccount: ShardusTypes.WrappedData;
         /* eslint-disable security/detect-object-injection */
-        if (WrappedEVMAccountFunctions.isWrappedEVMAccount(operatorAccount))
-            wrappedChangedOperatorAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(operatorAccount);
+if (WrappedEVMAccountFunctions.isWrappedEVMAccount(operatorAccount)) wrappedChangedOperatorAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(operatorAccount);
         /* eslint-enable security/detect-object-injection */
         shardus.applyResponseAddChangedAccount(applyResponse, operatorShardusAddress, wrappedChangedOperatorAccount, txId, txTimestamp);
     }
-    if (ShardeumFlags.supportInternalTxReceipt)
+if (ShardeumFlags.supportInternalTxReceipt)
         createInternalTxReceipt(shardus, applyResponse, tx, tx.reportedNodePublickKey, // nominee
         tx.operatorEVMAddress, // nominator
         txTimestamp, txId, bigIntToHex(BigInt(0)), // 0 amountSpent,

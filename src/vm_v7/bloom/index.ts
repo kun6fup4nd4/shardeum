@@ -7,10 +7,10 @@ export class Bloom {
      * Represents a Bloom filter.
      */
     constructor(bitvector?: Uint8Array) {
-        if (!bitvector)
+if (!bitvector)
             this.bitvector = zeros(BYTE_SIZE);
-        else {
-            if (bitvector.length !== BYTE_SIZE)
+else {
+if (bitvector.length !== BYTE_SIZE)
                 throw new Error('bitvectors must be 2048 bits long');
             this.bitvector = bitvector;
         }
@@ -45,14 +45,14 @@ export class Bloom {
             const bitLoc = 1 << loc % 8;
             match = (this.bitvector[BYTE_SIZE - byteLoc - 1] & bitLoc) !== 0;
         }
-        return Boolean(match);
+return Boolean(match);
     }
     /**
      * Checks if multiple topics are in a bloom.
      * @returns `true` if every topic is in the bloom
      */
     multiCheck(topics: Uint8Array[]): boolean {
-        return topics.every((t: Uint8Array) => this.check(t));
+return topics.every((t: Uint8Array) => this.check(t));
     }
     /**
      * Bitwise or blooms together.

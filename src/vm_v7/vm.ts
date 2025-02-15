@@ -63,7 +63,7 @@ export class VM {
             ? { genesisState: {} }
             : undefined;
         await vm.init({ ...genesisStateOpts, ...opts });
-        return vm;
+return vm;
     }
     /**
      * Instantiates a new {@link VM} Object.
@@ -76,21 +76,21 @@ export class VM {
     protected constructor(opts: VMOpts = {}) {
         this.events = new AsyncEventEmitter<VMEvents>();
         this._opts = opts;
-        if (opts.common)
+if (opts.common)
             this.common = opts.common;
-        else {
+else {
             const DEFAULT_CHAIN = Chain.Mainnet;
             this.common = new Common({ chain: DEFAULT_CHAIN });
         }
-        if (opts.stateManager)
+if (opts.stateManager)
             this.stateManager = opts.stateManager;
-        else
+else
             this.stateManager = new DefaultStateManager({ common: this.common });
         this.blockchain = opts.blockchain ?? new (Blockchain as any)({ common: this.common });
         // TODO tests
-        if (opts.evm)
+if (opts.evm)
             this.evm = opts.evm;
-        else
+else
             this.evm = new EVM({
                 common: this.common,
                 stateManager: this.stateManager,
@@ -98,7 +98,7 @@ export class VM {
             });
         this._setHardfork = opts.setHardfork ?? false;
         this._emit = async (topic: string, data: any): Promise<void> => {
-            return new Promise((resolve) => this.events.emit(topic as keyof VMEvents, data, resolve));
+return new Promise((resolve) => this.events.emit(topic as keyof VMEvents, data, resolve));
         };
         // Skip DEBUG calls unless 'ethjs' included in environmental DEBUG variables
         // Additional window check is to prevent vite browser bundling (and potentially other) to break
@@ -108,15 +108,14 @@ export class VM {
     async init({ genesisState }: {
         genesisState?: GenesisState;
     } = {}): Promise<void> {
-        if (this._isInitialized)
-            return;
-        if (genesisState !== undefined)
+if (this._isInitialized) return;
+if (genesisState !== undefined)
             await this.stateManager.generateCanonicalGenesis(genesisState);
-        else if (this._opts.stateManager === undefined)
+else if (this._opts.stateManager === undefined)
             throw Error('genesisState state required to set genesis for stateManager');
-        if (typeof (<any>this.blockchain)._init === 'function')
+if (typeof (<any>this.blockchain)._init === 'function')
             await (this.blockchain as any)._init({ genesisState });
-        if (this._opts.activatePrecompiles === true && typeof this._opts.stateManager === 'undefined') {
+if (this._opts.activatePrecompiles === true && typeof this._opts.stateManager === 'undefined') {
             await this.evm.journal.checkpoint();
             // put 1 wei in each of the precompiles in order to make the accounts non-empty and thus not have them deduct `callNewAccount` gas.
             for (const [addressStr] of getActivePrecompiles(this.common)) {
@@ -124,7 +123,7 @@ export class VM {
                 let account = await this.stateManager.getAccount(address);
                 // Only do this if it is not overridden in genesis
                 // Note: in the case that custom genesis has storage fields, this is preserved
-                if (account === undefined) {
+if (account === undefined) {
                     account = new Account();
                     const newAccount = Account.fromAccountData({
                         balance: 1,
@@ -148,7 +147,7 @@ export class VM {
      *  - `generate`: false
      */
     async runBlock(opts: RunBlockOpts): Promise<RunBlockResult> {
-        return runBlock.bind(this)(opts);
+return runBlock.bind(this)(opts);
     }
     /**
      * Process a transaction. Run the vm. Transfers eth. Checks balances.
@@ -160,7 +159,7 @@ export class VM {
      * @param {RunTxOpts} opts
      */
     async runTx(opts: RunTxOpts, evm: any = null, txid: string = null): Promise<RunTxResult> {
-        return runTx.bind(this)(opts, evm, txid);
+return runTx.bind(this)(opts, evm, txid);
     }
     /**
      * Build a block on top of the current state
@@ -177,7 +176,7 @@ export class VM {
      * - {@link BlockBuilder.revert}
      */
     async buildBlock(opts: BuildBlockOpts): Promise<BlockBuilder> {
-        return buildBlock.bind(this)(opts);
+return buildBlock.bind(this)(opts);
     }
     /**
      * Returns a copy of the {@link VM} instance.
@@ -196,7 +195,7 @@ export class VM {
             stateManager,
         };
         const evmCopy = new EVM(evmOpts); // TODO fixme (should copy the EVMInterface, not default EVM)
-        return VM.create({
+return VM.create({
             stateManager,
             blockchain: this.blockchain,
             common,
@@ -216,6 +215,6 @@ export class VM {
             hf = 'error';
         }
         const errorStr = `vm hf=${hf}`;
-        return errorStr;
+return errorStr;
     }
 }

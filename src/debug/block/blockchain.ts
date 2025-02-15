@@ -6,9 +6,8 @@ export const blocks: BlockMap = {};
 let latestBlock = 0;
 function createNewBlock(blockNumber: number, timestamp: number): Block {
     /* eslint-disable security/detect-object-injection */
-    if (blocks[blockNumber])
-        return blocks[blockNumber];
-    if (!blocks[blockNumber]) {
+if (blocks[blockNumber]) return blocks[blockNumber];
+if (!blocks[blockNumber]) {
         const timestampInSecond = timestamp ? Math.round(timestamp / 1000) : Math.round(Date.now() / 1000);
         const blockData = {
             header: { number: blockNumber, timestamp: timestampInSecond },
@@ -19,11 +18,11 @@ function createNewBlock(blockNumber: number, timestamp: number): Block {
         // eslint-disable-next-line security/detect-object-injection
         blocks[blockNumber] = block;
         latestBlock = blockNumber;
-        return block;
+return block;
     }
 }
 export const getOrCreateBlockFromTimestamp = (timestamp: number): Block => {
-    return createNewBlock(0, Date.now() / 1000);
+return createNewBlock(0, Date.now() / 1000);
 };
 export class ShardeumBlock extends Blockchain {
     constructor(opts: BlockchainOptions = {}) {
@@ -43,9 +42,8 @@ export class ShardeumBlock extends Blockchain {
         // need to then read the block from the canonical chain Q: is this safe? We
         // know it is OK if we call it from the iterator... (runBlock)
         const blockNumber = parseInt(blockId.toString());
-        if (blocks[`${blockNumber}`])
-            return blocks[`${blockNumber}`];
-        return this.createBlock(blockId);
+if (blocks[`${blockNumber}`]) return blocks[`${blockNumber}`];
+return this.createBlock(blockId);
     }
     createBlock(blockId): Block {
         const blockData: BlockData = {
@@ -53,6 +51,6 @@ export class ShardeumBlock extends Blockchain {
             transactions: [],
             uncleHeaders: [],
         };
-        return Block.fromBlockData(blockData, { common: evmCommon });
+return Block.fromBlockData(blockData, { common: evmCommon });
     }
 }

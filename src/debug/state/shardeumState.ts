@@ -91,8 +91,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     constructor(opts: DefaultStateManagerOpts = {}) {
         let common = opts.common;
-        if (!common)
-            common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.Istanbul });
+if (!common) common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.Istanbul });
         this.common = common;
         this.originalStorageCache = new OriginalStorageCache(this.getContractStorage.bind(this));
         //this._cache = new Cache(this._trie)
@@ -104,19 +103,19 @@ export default class ShardeumState implements EVMStateManagerInterface {
         this._accessedStorageReverted = [new Map()];
         // this._storageTries = {}
         // Safeguard if "process" is not available (browser)
-        if (process !== undefined && process.env.DEBUG)
+if (process !== undefined && process.env.DEBUG)
             this.DEBUG = true;
         this._transactionState = null;
     }
     //critical to function
     setTransactionState(transactionState: TransactionState): void {
-        if (this._transactionState) {
+if (this._transactionState) {
             // TODO: we should find a way handle this condition
         }
         this._transactionState = transactionState;
     }
     unsetTransactionState(txId: string): void {
-        if (this._transactionState.linkedTX !== txId) {
+if (this._transactionState.linkedTX !== txId) {
             // TODO: we should find a way handle this condition
         }
         this._transactionState = null;
@@ -131,7 +130,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
      * checkpoints were reverted.
      */
     copy(): EVMStateManagerInterface {
-        return new ShardeumState({
+return new ShardeumState({
             common: this.common,
         });
     }
@@ -142,11 +141,11 @@ export default class ShardeumState implements EVMStateManagerInterface {
     async getAccount(address: Address): Promise<Account> {
         let testAccount;
         //side run system on the side for now
-        if (this._transactionState != null) {
+if (this._transactionState != null) {
             testAccount = await this._transactionState.getAccount(null, address, false, true);
-            return testAccount;
+return testAccount;
         }
-        return;
+return;
     }
     /**
      * Saves an account into state under the provided `address`.
@@ -154,19 +153,19 @@ export default class ShardeumState implements EVMStateManagerInterface {
      * @param account - The account to store
      */
     async putAccount(address: Address, account: Account): Promise<void> {
-        if (this._transactionState != null)
+if (this._transactionState != null)
             //side run system on the side for now
             this._transactionState.putAccount(address, account);
-        return;
+return;
     }
     /**
      * Deletes an account from state under the provided `address`. The account will also be removed from the state trie.
      * @param address - Address of the account which should be deleted
      */
     async deleteAccount(address: Address): Promise<void> {
-        if (this.DEBUG)
+if (this.DEBUG)
             debug(`Delete account ${address}`);
-        return; // I think we can just return and ignore this for now
+return; // I think we can just return and ignore this for now
         // need to actually create a plan for deleting data
     }
     /**
@@ -188,10 +187,10 @@ export default class ShardeumState implements EVMStateManagerInterface {
     async putContractCode(address: Address, value: Buffer): Promise<void> {
         //It could be triggering some marking/including of accounts, but that
         //may be moot now.
-        if (this._transactionState != null)
+if (this._transactionState != null)
             //side run system on the side for now
             this._transactionState.putContractCode(address, value);
-        return;
+return;
     }
     /**
      * Gets the code corresponding to the provided `address`.
@@ -201,11 +200,11 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async getContractCode(address: Address): Promise<Uint8Array> {
         //side run system on the side for now
-        if (this._transactionState != null) {
+if (this._transactionState != null) {
             const testAccount = await this._transactionState.getContractCode(null, address, false, true);
-            return testAccount;
+return testAccount;
         }
-        return;
+return;
     }
     /**
      * Creates a storage trie from the primary storage trie
@@ -227,11 +226,11 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async getContractStorage(address: Address, key: Uint8Array, originalOnly = false): Promise<Buffer> {
         let testAccount;
-        if (this._transactionState != null) {
+if (this._transactionState != null) {
             testAccount = await this._transactionState.getContractStorage(null, address, key, originalOnly, false);
-            return testAccount;
+return testAccount;
         }
-        return;
+return;
     }
     /**
      * Caches the storage value associated with the provided `address` and `key`
@@ -242,11 +241,11 @@ export default class ShardeumState implements EVMStateManagerInterface {
      * @param key - Key in the account's storage to get the value for. Must be 32 bytes long.
      */
     async getOriginalContractStorage(address: Address, key: Buffer): Promise<Uint8Array> {
-        if (this._transactionState != null) {
+if (this._transactionState != null) {
             const testAccount = await this._transactionState.getContractStorage(null, address, key, true, false);
-            return testAccount;
+return testAccount;
         }
-        return;
+return;
     }
     /**
      * Clears the original storage cache. Refer to {@link StateManager.getOriginalContractStorage}
@@ -323,14 +322,14 @@ export default class ShardeumState implements EVMStateManagerInterface {
      * @param value - Value to set at `key` for account corresponding to `address`. Cannot be more than 32 bytes. Leading zeros are stripped. If it is a empty or filled with zeros, deletes the value.
      */
     async putContractStorage(address: Address, key: Buffer, value: Buffer): Promise<void> {
-        if (key.length !== 32)
+if (key.length !== 32)
             throw new Error('Storage key must be 32 bytes long');
-        if (value.length > 32)
+if (value.length > 32)
             throw new Error('Storage value cannot be longer than 32 bytes');
-        if (this._transactionState != null)
+if (this._transactionState != null)
             //side run system on the side for now
             this._transactionState.putContractStorage(address, key, value);
-        return;
+return;
     }
     /**
      * Clears all storage entries for the account corresponding to `address`.
@@ -346,9 +345,9 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async checkpoint(): Promise<void> {
         this._touchedStack.push(new Set(Array.from(this._touched)));
-        if (this._transactionState != null)
+if (this._transactionState != null)
             this._transactionState.checkpoint();
-        return;
+return;
     }
     /**
      * Commits the current change-set to the instance since the
@@ -356,9 +355,9 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async commit(): Promise<void> {
         this._touchedStack.pop();
-        if (this._transactionState != null)
+if (this._transactionState != null)
             this._transactionState.commit();
-        return;
+return;
     }
     /**
      * Merges a storage map into the last item of the accessed storage stack
@@ -384,9 +383,9 @@ export default class ShardeumState implements EVMStateManagerInterface {
      * last call to checkpoint.
      */
     async revert(): Promise<void> {
-        if (this._transactionState != null)
+if (this._transactionState != null)
             this._transactionState.revert();
-        return;
+return;
     }
     /**
      * Gets the state-root of the Merkle-Patricia trie representation
@@ -398,7 +397,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
         //may not need to do anything. but we need to trace where this is used
         //looks like just Pre-Byzantium paths use this in a receipt
         //throw new Error('todo implement update to getStateRoot ')
-        return Buffer.from([]);
+return Buffer.from([]);
     }
     /**
      * Sets the state of the instance to that represented
@@ -409,7 +408,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async setStateRoot(): Promise<void> {
         //should not need this when we use runTX and no blocks
-        return;
+return;
     }
     /**
      * Dumps the RLP-encoded storage values for an `account` specified by `address`.
@@ -421,16 +420,16 @@ export default class ShardeumState implements EVMStateManagerInterface {
     async dumpStorage(): Promise<StorageDump> {
         // this was kinda nice. looks like we are loosing a way to find all of the storage for a single contract.
         //    ...would that be crazy to add to a relational DB.  After all this is just debugging stuff here
-        return { result: 'no storage when SaveEVMTries === false' };
+return { result: 'no storage when SaveEVMTries === false' };
     }
     async dumpStorageRange(address: Address, startKey: bigint, limit: number): Promise<StorageRange> {
-        if (!Number.isSafeInteger(limit) || limit < 0)
+if (!Number.isSafeInteger(limit) || limit < 0)
             throw new Error(`Limit is not a proper uint.`);
         await this.flush();
         const account = await this.getAccount(address);
-        if (!account)
+if (!account)
             throw new Error(`Account does not exist.`);
-        return new Promise((resolve, reject) => {
+return new Promise((resolve, reject) => {
             this._getStorageTrie(address, account)
                 .then((trie) => {
                 let inRange = false;
@@ -439,19 +438,15 @@ export default class ShardeumState implements EVMStateManagerInterface {
                 const storageMap: StorageRange['storage'] = {};
                 const stream = trie.createReadStream();
                 stream.on('data', (val: any) => {
-                    if (!inRange)
+if (!inRange)
                         // Check if the key is already in the correct range.
-                        if (bytesToBigInt(val.key) >= startKey) {
-                            inRange = true;
-                        }
-                        else {
-                            return;
-                        }
-                    if (i < limit) {
+if (bytesToBigInt(val.key) >= startKey) inRange = true;
+else return;
+if (i < limit) {
                         storageMap[bytesToHex(val.key)] = { key: null, value: bytesToHex(val.value) };
                         i++;
                     }
-                    else if (i === limit)
+else if (i === limit)
                         resolve({
                             storage: storageMap,
                             nextKey: bytesToHex(val.key),
@@ -476,7 +471,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async getProof(address: Address, storageSlots: Uint8Array[] = []): Promise<Proof> {
         const account = await this.getAccount(address);
-        if (!account) {
+if (!account) {
             // throw new Error(`getProof() can only be called for an existing account`)
             const returnValue: Proof = {
                 address: address.toString(),
@@ -487,7 +482,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
                 accountProof: (await this._trie.createProof(address.bytes)).map((p) => bytesToHex(p)),
                 storageProof: [],
             };
-            return returnValue;
+return returnValue;
         }
         const accountProof: PrefixedHexString[] = (await this._trie.createProof(address.bytes)).map((p) => bytesToHex(p));
         const storageProof: StorageProof[] = [];
@@ -511,7 +506,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
             accountProof,
             storageProof,
         };
-        return returnValue;
+return returnValue;
     }
     async flush(): Promise<void> {
         throw new Error('flush is not valid for ShardeumState');
@@ -585,7 +580,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
      */
     async accountIsEmpty(address: Address): Promise<boolean> {
         const account = await this.getAccount(address);
-        return account == null || account.isEmpty();
+return account == null || account.isEmpty();
     }
     /**
      * Checks if the `account` corresponding to `address`
@@ -597,7 +592,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
         // let exists = await AccountsStorage.accountExists(accountShardusAddress)
         // return exists
         const account = await this.getAccount(address);
-        return account != null; //&& account.isEmpty() === false
+return account != null; //&& account.isEmpty() === false
     }
     /**
      * Returns true if the address is warm in the current context
@@ -607,10 +602,9 @@ export default class ShardeumState implements EVMStateManagerInterface {
         for (let i = this._accessedStorage.length - 1; i >= 0; i--) {
             // eslint-disable-next-line security/detect-object-injection
             const currentMap = this._accessedStorage[i];
-            if (currentMap.has(address.toString()))
-                return true;
+if (currentMap.has(address.toString())) return true;
         }
-        return false;
+return false;
     }
     /** EIP-2929 logic
      * This should only be called from within the EVM
@@ -624,7 +618,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
     addWarmedAddress(address: Buffer): void {
         const key = address.toString();
         const storageSet = this._accessedStorage[this._accessedStorage.length - 1].get(key);
-        if (!storageSet) {
+if (!storageSet) {
             const emptyStorage = new Set<string>();
             this._accessedStorage[this._accessedStorage.length - 1].set(key, emptyStorage);
         }
@@ -640,10 +634,9 @@ export default class ShardeumState implements EVMStateManagerInterface {
         for (let i = this._accessedStorage.length - 1; i >= 0; i--) {
             // eslint-disable-next-line security/detect-object-injection
             const currentMap = this._accessedStorage[i];
-            if (currentMap.has(addressKey) && currentMap.get(addressKey)!.has(storageKey))
-                return true;
+if (currentMap.has(addressKey) && currentMap.get(addressKey)!.has(storageKey)) return true;
         }
-        return false;
+return false;
     }
     /**
      * Mark the storage slot in the address as warm in the current context
@@ -653,7 +646,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
     addWarmedStorage(address: Buffer, slot: Buffer): void {
         const addressKey = address.toString();
         let storageSet = this._accessedStorage[this._accessedStorage.length - 1].get(addressKey);
-        if (!storageSet) {
+if (!storageSet) {
             storageSet = new Set();
             this._accessedStorage[this._accessedStorage.length - 1].set(addressKey, storageSet!);
         }
@@ -675,7 +668,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
         this._touched.clear();
         // not sure yet if we need to implement this..
         //throw new Error('cleanupTouchedAccounts not implemented yet when SaveEVMTries === false')
-        return;
+return;
         // TODO do we need to bring back some of this functionality?
         // if (this._common.gteHardfork('spuriousDragon')) {
         //   const touchedArray = Array.from(this._touched)
@@ -746,12 +739,11 @@ export default class ShardeumState implements EVMStateManagerInterface {
     //   }
     hasStateRoot(root: Uint8Array): Promise<boolean> {
         // todo: flesh this out
-        return Promise.resolve(false);
+return Promise.resolve(false);
     }
     async modifyAccountFields(address: Address, accountFields: AccountFields): Promise<void> {
         let account = await this.getAccount(address);
-        if (!account)
-            account = new Account();
+if (!account) account = new Account();
         account.nonce = accountFields.nonce ?? account.nonce;
         account.balance = accountFields.balance ?? account.balance;
         account.storageRoot = accountFields.storageRoot ?? account.storageRoot;
@@ -761,7 +753,7 @@ export default class ShardeumState implements EVMStateManagerInterface {
     shallowCopy(): EVMStateManagerInterface {
         // todo: flesh this out
         // const trie = this._trie.shallowCopy()
-        return this;
+return this;
     }
     /**
      * Gets the storage trie for an account from the storage

@@ -86,20 +86,18 @@ export default class TransactionState {
         //   account.balance = BigInt(account.balance.__BigInt__)
         // }
         //hmm some hacks to fix data after getting copied around..
-        if (typeof account.nonce === 'string')
-            if (account.nonce.startsWith('0x') === false) {
+if (typeof account.nonce === 'string')
+if (account.nonce.startsWith('0x') === false)
                 account.nonce = '0x' + account.nonce;
-            }
-        if (typeof account.balance === 'string')
-            if (account.balance.startsWith('0x') === false) {
+if (typeof account.balance === 'string')
+if (account.balance.startsWith('0x') === false)
                 account.balance = '0x' + account.balance;
-            }
         this.fixAccountUint8Arrays(account);
     }
     private static fixAccountUint8Arrays(account): void {
-        if (account.storageRoot?.data)
+if (account.storageRoot?.data)
             account.storageRoot = Uint8Array.from(account.storageRoot.data);
-        if (account.codeHash?.data)
+if (account.codeHash?.data)
             account.codeHash = Uint8Array.from(account.codeHash.data);
     }
     resetTransactionState(): void {
@@ -150,10 +148,10 @@ export default class TransactionState {
         };
         this.touchedCAs = new Set();
         //load in the first reads
-        if (firstReads != null)
+if (firstReads != null)
             this.firstAccountReads = firstReads;
         //load in the first contract storage reads
-        if (firstContractStorageReads != null)
+if (firstContractStorageReads != null)
             this.firstContractStorageReads = firstContractStorageReads;
         // Set flag according to environment variable
         this.debugTrace = process.env.DEBUG_TRACE === 'true';
@@ -164,7 +162,7 @@ export default class TransactionState {
         contractStorages: Map<string, Map<string, Uint8Array>>;
         contractBytes: Map<string, ContractByteWrite>;
     } {
-        return {
+return {
             accounts: this.firstAccountReads,
             contractStorages: this.firstContractStorageReads,
             contractBytes: this.firstContractBytesReads,
@@ -190,7 +188,7 @@ export default class TransactionState {
         // }
         //let the apply function take care of wrapping these accounts?
         //return { accounts: this.allAccountWrites, contractStorages: this.allContractStorageWrites, contractBytes: this.allContractBytesWrites }
-        return {
+return {
             accounts: this.committedAccountWrites,
             contractStorages: this.allContractStorageWrites,
             contractBytes: ShardeumFlags.fixContractBytes
@@ -203,7 +201,7 @@ export default class TransactionState {
         kvPairs: Map<string, Map<string, Uint8Array>>;
     } {
         //this is the data needed to start computation on another shard
-        return { accounts: this.firstAccountReads, kvPairs: this.firstContractStorageReads };
+return { accounts: this.firstAccountReads, kvPairs: this.firstContractStorageReads };
     }
     /**
      * Call this from dapp.updateAccountFull / updateAccountPartial to commit changes to the EVM trie
@@ -250,28 +248,27 @@ export default class TransactionState {
     async getAccount(worldStateTrie: Trie, address: Address, originalOnly: boolean, canThrow: boolean): Promise<Account> {
         const addressString = address.toString();
         let account: Account;
-        if (ShardeumFlags.Virtual0Address && addressString === zeroAddressStr)
-            return zeroAddressAccount;
-        if (originalOnly === false) {
+if (ShardeumFlags.Virtual0Address && addressString === zeroAddressStr) return zeroAddressAccount;
+if (originalOnly === false) {
             //first check our map as these are the most current account values
-            if (this.allAccountWrites.has(addressString)) {
+if (this.allAccountWrites.has(addressString)) {
                 const storedRlp = this.allAccountWrites.get(addressString);
                 account = storedRlp ? Account.fromRlpSerializedAccount(storedRlp) : undefined;
-                if (this.debugTrace)
+if (this.debugTrace)
                     this.debugTraceLog(`getAccount:(allAccountWrites) addr:${addressString} balance:${account?.balance} nonce:${account?.nonce}`);
-                return account;
+return account;
             }
             //check stack for changes next.  from newest to oldest
             //new changes are pushed to the end of the array
             for (let i = this.allAccountWritesStack.length - 1; i >= 0; i--) {
                 // eslint-disable-next-line security/detect-object-injection
                 const accountWrites = this.allAccountWritesStack[i];
-                if (accountWrites.has(addressString)) {
+if (accountWrites.has(addressString)) {
                     const storedRlp = accountWrites.get(addressString);
                     account = storedRlp ? Account.fromRlpSerializedAccount(storedRlp) : undefined;
-                    if (this.debugTrace)
+if (this.debugTrace)
                         this.debugTraceLog(`getAccount:(allAccountWritesStack-skipped) addr:${addressString} balance:${account?.balance} nonce:${account?.nonce}`);
-                    return account;
+return account;
                     //ignore but log this find
                     //break
                 }
@@ -281,21 +278,21 @@ export default class TransactionState {
         //this is allowed even when originalOnly==-true because
         //when checkpoints === 0 in ethereumJS it clears original storage
         //maybe this is moot for accounts, but this can be an example for contract storage.
-        if (this.committedAccountWrites.has(addressString)) {
+if (this.committedAccountWrites.has(addressString)) {
             const storedRlp = this.committedAccountWrites.get(addressString);
             account = storedRlp ? Account.fromRlpSerializedAccount(storedRlp) : undefined;
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getAccount:(committedAccountWrites) addr:${addressString} balance:${account?.balance} nonce:${account?.nonce}`);
-            return account;
+return account;
         }
-        if (this.firstAccountReads.has(addressString)) {
+if (this.firstAccountReads.has(addressString)) {
             const storedRlp = this.firstAccountReads.get(addressString);
             account = storedRlp ? Account.fromRlpSerializedAccount(storedRlp) : undefined;
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getAccount:(firstAccountReads) addr:${addressString} balance:${account?.balance} nonce:${account?.nonce}`);
-            return account;
+return account;
         }
-        if (this.accountInvolvedCB(this, addressString, true) === false)
+if (this.accountInvolvedCB(this, addressString, true) === false)
             throw new Error('unable to proceed, cant involve account');
         let storedRlp: Uint8Array;
         //get from accounts
@@ -304,50 +301,49 @@ export default class TransactionState {
         //also what about RLP format... need to do the extra conversions now, but plan on the best conversion.
         const accountShardusAddress = toShardusAddress(address.toString(), AccountType.Account);
         const wrappedAccount = await AccountsStorage.getAccount(accountShardusAddress);
-        if (wrappedAccount != null) {
+if (wrappedAccount != null) {
             fixDeserializedWrappedEVMAccount(wrappedAccount);
             account = Account.fromAccountData(wrappedAccount.account);
         }
-        if (account != null)
-            storedRlp = account.serialize();
-        if (this.debugTrace)
+if (account != null) storedRlp = account.serialize();
+if (this.debugTrace)
             this.debugTraceLog(`getAccount:(AccountsStorage) addr:${addressString} balance:${account?.balance} nonce:${account?.nonce}`);
         //attempt to get data from tryGetRemoteAccountCB
         //this can be a long wait only suitable in some cases
-        if (account == undefined) {
+if (account == undefined) {
             const wrappedEVMAccount = await this.tryGetRemoteAccountCB(this, AccountType.Account, addressString, null);
-            if (wrappedEVMAccount != undefined) {
+if (wrappedEVMAccount != undefined) {
                 //get account aout of the wrapped evm account
                 account = wrappedEVMAccount.account;
                 storedRlp = account.serialize();
-                if (this.debugTrace)
+if (this.debugTrace)
                     this.debugTraceLog(`getAccount:(tryGetRemoteAccountCB) addr:${addressString} balance:${account?.balance} nonce:${account?.nonce}`);
             }
         }
         //Storage miss!!!, account not on this shard
-        if (account == undefined) {
+if (account == undefined) {
             //event callback to inidicate we do not have the account in this shard
             // not 100% if we should await this, may need some group discussion
             const isRemoteShard = await this.accountMissCB(this, addressString);
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getAccount: addr:${addressString} v:notFound isRemoteShard:${isRemoteShard}`);
-            if (canThrow && isRemoteShard)
+if (canThrow && isRemoteShard)
                 throw new Error('account in remote shard, abort'); //todo smarter throw?
             //return a new unitizlied account
             account = new Account();
             //;(account as any).virtual = true
             //this._update(address, account, false, false, true)
             //todo need to insert it into a map of new / virtual accounts?
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getAccount: initialized new account addr:${addressString} v:${Utils.safeStringify(account)}`);
-            return account;
+return account;
         }
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`getAccount: addr:${addressString} v:${Utils.safeStringify(account)}`);
         // storage hit!!! data exists in this shard
         //put this in our first reads map
         this.firstAccountReads.set(addressString, storedRlp);
-        return account;
+return account;
     }
     /**
      *
@@ -356,34 +352,34 @@ export default class TransactionState {
      */
     putAccount(address: Address, account: Account): void {
         const addressString = address.toString();
-        if (ShardeumFlags.Virtual0Address && addressString === zeroAddressStr) {
-            if (this.debugTrace)
+if (ShardeumFlags.Virtual0Address && addressString === zeroAddressStr) {
+if (this.debugTrace)
                 this.debugTraceLog(`putAccount: addr:${addressString} is neglected`);
-            return;
+return;
         }
-        if ( /*this.debugTrace &&*/ShardeumFlags.VerboseLogs)
+if ( /*this.debugTrace &&*/ShardeumFlags.VerboseLogs)
             //print the calls stack that is calling put account
             const er = new Error();
-        if (this.accountInvolvedCB(this, addressString, false) === false)
+if (this.accountInvolvedCB(this, addressString, false) === false)
             throw new Error('unable to proceed in put acocunt, cant involve account');
         TransactionState.fixAccountFields(account);
         const accountObj = Account.fromAccountData(account);
         const storedRlp = accountObj.serialize();
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`putAccount: addr:${addressString} v:${Utils.safeStringify(accountObj)}`);
         //this.allAccountWrites.set(addressString, storedRlp)
         //this.checkpoints[this.checkpoints.length - 1]
-        if (this.allAccountWritesStack.length > 0) {
+if (this.allAccountWritesStack.length > 0) {
             const accountWrites = this.allAccountWritesStack[this.allAccountWritesStack.length - 1];
             accountWrites.set(addressString, storedRlp);
         }
-        else
+else
             //if we are not using checkpoints then use this data to set first account reads
             this.firstAccountReads.set(addressString, storedRlp);
     }
     insertFirstAccountReads(address: any, account: Account): void {
         const addressString = address.toString();
-        if (this.accountInvolvedCB(this, addressString, false) === false)
+if (this.accountInvolvedCB(this, addressString, false) === false)
             throw new Error('unable to proceed, cant involve account');
         TransactionState.fixAccountFields(account);
         const accountObj = Account.fromAccountData(account);
@@ -394,34 +390,34 @@ export default class TransactionState {
         const addressString = contractAddress.toString();
         //first get the account so we can have the correct code hash to look at
         const contractAccount = await this.getAccount(worldStateTrie, contractAddress, originalOnly, canThrow);
-        if (contractAccount == undefined) {
-            if (this.debugTrace)
+if (contractAccount == undefined) {
+if (this.debugTrace)
                 this.debugTraceLog(`getContractCode: addr:${addressString} Found no contract account`);
-            return;
+return;
         }
         const codeHash = contractAccount.codeHash;
         const codeHashStr = bytesToHex(codeHash);
-        if (originalOnly === false) {
-            if (this.allContractBytesWrites.has(codeHashStr)) {
+if (originalOnly === false) {
+if (this.allContractBytesWrites.has(codeHashStr)) {
                 const codeBytes = this.allContractBytesWrites.get(codeHashStr).contractByte;
-                if (this.debugTrace)
+if (this.debugTrace)
                     this.debugTraceLog(`getContractCode: (allContractBytesWrites) addr:${addressString} codeHashStr:${codeHashStr} v:${codeBytes.length}`);
-                return codeBytes;
+return codeBytes;
             }
-            if (this.allContractBytesWritesByAddress.has(addressString)) {
+if (this.allContractBytesWritesByAddress.has(addressString)) {
                 const codeBytes = this.allContractBytesWritesByAddress.get(addressString).contractByte;
-                if (this.debugTrace)
+if (this.debugTrace)
                     this.debugTraceLog(`getContractCode: (allContractBytesWritesByAddress) addr:${addressString} v:${codeBytes.length}`);
-                return codeBytes;
+return codeBytes;
             }
         }
-        if (this.firstContractBytesReads.has(codeHashStr)) {
+if (this.firstContractBytesReads.has(codeHashStr)) {
             const codeBytes = this.firstContractBytesReads.get(codeHashStr).contractByte;
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getContractCode: (firstContractBytesReads) addr:${addressString} codeHashStr:${codeHashStr} v:${codeBytes.length}`);
-            return codeBytes;
+return codeBytes;
         }
-        if (this.accountInvolvedCB(this, addressString, true) === false)
+if (this.accountInvolvedCB(this, addressString, true) === false)
             throw new Error('unable to proceed, cant involve contract bytes');
         let storedCodeByte: Uint8Array;
         let codeBytes: Uint8Array;
@@ -430,33 +426,33 @@ export default class TransactionState {
         //need: contract address,  code hash  for toShardusAddressWithKey
         const bytesShardusAddress = toShardusAddressWithKey(addressString, codeHashStr, AccountType.ContractCode);
         const wrappedAccount = await AccountsStorage.getAccount(bytesShardusAddress);
-        if (wrappedAccount != null) {
+if (wrappedAccount != null) {
             fixDeserializedWrappedEVMAccount(wrappedAccount);
             storedCodeByte = wrappedAccount.codeByte;
             codeBytes = storedCodeByte;
         }
         //attempt to get data from tryGetRemoteAccountCB
         //this can be a long wait only suitable in some cases
-        if (codeBytes == undefined) {
+if (codeBytes == undefined) {
             const wrappedEVMAccount = await this.tryGetRemoteAccountCB(this, AccountType.ContractCode, addressString, codeHashStr);
-            if (wrappedEVMAccount != undefined && wrappedEVMAccount.codeByte)
+if (wrappedEVMAccount != undefined && wrappedEVMAccount.codeByte)
                 //get account aout of the wrapped evm account
                 codeBytes = wrappedEVMAccount.codeByte;
         }
         //Storage miss!!!, account not on this shard
-        if (codeBytes == undefined) {
+if (codeBytes == undefined) {
             //event callback to inidicate we do not have the account in this shard
             // not 100% if we should await this, may need some group discussion
             const isRemoteShard = await this.accountMissCB(this, codeHashStr);
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getContractCode: addr:${addressString} codeHashStr:${codeHashStr} v:undefined isRemoteShard:${isRemoteShard}`);
-            if (canThrow && isRemoteShard)
+if (canThrow && isRemoteShard)
                 throw new Error('codeBytes in remote shard, abort'); //todo smarter throw?
             //return unitiazlied new code bytes
             //todo need to insert it into a map of new / virtual accounts?
-            return new Uint8Array(0);
+return new Uint8Array(0);
         }
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`getContractCode: addr:${addressString} codeHashStr:${codeHashStr} v:${codeBytes.length}`);
         // storage hit!!! data exists in this shard
         //put this in our first reads map
@@ -465,22 +461,21 @@ export default class TransactionState {
             contractByte: codeBytes,
             contractAddress: contractAddress,
         });
-        return codeBytes;
+return codeBytes;
     }
     async putContractCode(contractAddress: Address, codeByte: Uint8Array): Promise<void> {
         const addressString = contractAddress.toString();
-        if (this.accountInvolvedCB(this, addressString, false) === false)
+if (this.accountInvolvedCB(this, addressString, false) === false)
             throw new Error('unable to proceed, cant involve contract storage');
         const codeHash = keccak256(codeByte);
         const codeHashStr = bytesToHex(codeHash);
-        if (equalsBytes(codeHash, KECCAK256_NULL))
-            return;
+if (equalsBytes(codeHash, KECCAK256_NULL)) return;
         const contractByteWrite: ContractByteWrite = {
             contractByte: codeByte,
             codeHash,
             contractAddress,
         };
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`putContractCode: addr:${addressString} codeHash:${codeHashStr} v:${bytesToHex(contractByteWrite.contractByte)}`);
         this.allContractBytesWrites.set(codeHashStr, contractByteWrite);
         this.allContractBytesWritesByAddress.set(addressString, contractByteWrite);
@@ -488,42 +483,41 @@ export default class TransactionState {
     }
     insertFirstContractBytesReads(contractAddress: Address, codeByte: Uint8Array): void {
         const addressString = contractAddress.toString();
-        if (this.accountInvolvedCB(this, addressString, false) === false)
+if (this.accountInvolvedCB(this, addressString, false) === false)
             throw new Error('unable to proceed, cant involve contract storage');
         const codeHash = keccak256(codeByte);
         const codeHashStr = bytesToHex(codeHash);
-        if (equalsBytes(codeHash, KECCAK256_NULL))
-            return;
+if (equalsBytes(codeHash, KECCAK256_NULL)) return;
         this.firstContractBytesReads.set(codeHashStr, { codeHash, contractByte: codeByte, contractAddress });
         this.touchedCAs.add(addressString);
     }
     async getContractStorage(storage: Trie, contractAddress: Address, key: Uint8Array, originalOnly: boolean, canThrow: boolean): Promise<Uint8Array> {
         const addressString = contractAddress.toString();
         const keyString = bytesToHex(key);
-        if (originalOnly === false)
-            if (this.allContractStorageWrites.has(addressString)) {
+if (originalOnly === false)
+if (this.allContractStorageWrites.has(addressString)) {
                 const contractStorageWrites = this.allContractStorageWrites.get(addressString);
-                if (contractStorageWrites.has(keyString)) {
+if (contractStorageWrites.has(keyString)) {
                     const storedRlp = contractStorageWrites.get(keyString);
                     const returnValue = storedRlp
                         ? (RLP.decode(storedRlp ?? new Uint8Array(0)) as Uint8Array)
                         : undefined;
-                    if (this.debugTrace)
+if (this.debugTrace)
                         this.debugTraceLog(`getContractStorage: (contractStorageWrites) addr:${addressString} key:${keyString} v:${returnValue ? bytesToHex(returnValue) : undefined}`);
-                    return returnValue;
+return returnValue;
                 }
             }
-        if (this.firstContractStorageReads.has(addressString)) {
+if (this.firstContractStorageReads.has(addressString)) {
             const contractStorageReads = this.firstContractStorageReads.get(addressString);
-            if (contractStorageReads.has(keyString)) {
+if (contractStorageReads.has(keyString)) {
                 const storedRlp = contractStorageReads.get(keyString);
                 const returnValue = storedRlp ? (RLP.decode(storedRlp ?? new Uint8Array(0)) as Uint8Array) : undefined;
-                if (this.debugTrace)
+if (this.debugTrace)
                     this.debugTraceLog(`getContractStorage: (contractStorageReads) addr:${addressString} key:${keyString} v:${returnValue ? bytesToHex(returnValue) : undefined}}`);
-                return returnValue;
+return returnValue;
             }
         }
-        if (this.contractStorageInvolvedCB(this, addressString, keyString, false) === false)
+if (this.contractStorageInvolvedCB(this, addressString, keyString, false) === false)
             throw new Error('unable to proceed, cant involve contract storage');
         let storedRlp;
         let storedValue;
@@ -532,59 +526,59 @@ export default class TransactionState {
         // toShardusAddressWithKey.. use contract address followed by key
         const storageShardusAddress = toShardusAddressWithKey(addressString, keyString, AccountType.ContractStorage);
         const wrappedAccount = await AccountsStorage.getAccount(storageShardusAddress);
-        if (wrappedAccount != null) {
+if (wrappedAccount != null) {
             fixDeserializedWrappedEVMAccount(wrappedAccount);
             storedRlp = wrappedAccount.value;
             storedValue = storedRlp ? RLP.decode(storedRlp) : undefined;
         }
         //attempt to get data from tryGetRemoteAccountCB
         //this can be a long wait only suitable in some cases
-        if (storedValue == undefined) {
+if (storedValue == undefined) {
             const wrappedEVMAccount = await this.tryGetRemoteAccountCB(this, AccountType.ContractStorage, addressString, keyString);
-            if (wrappedEVMAccount != undefined && wrappedEVMAccount.value) {
+if (wrappedEVMAccount != undefined && wrappedEVMAccount.value) {
                 //get account aout of the wrapped evm account
                 storedRlp = wrappedEVMAccount.value;
                 storedValue = storedRlp ? RLP.decode(storedRlp) : undefined;
             }
         }
         //Storage miss!!!, account not on this shard
-        if (storedValue == undefined) {
+if (storedValue == undefined) {
             //event callback to inidicate we do not have the account in this shard
             const isRemoteShard = await this.contractStorageMissCB(this, addressString, keyString);
-            if (this.debugTrace)
+if (this.debugTrace)
                 this.debugTraceLog(`getContractStorage: addr:${addressString} key:${keyString} v:notFound`);
-            if (canThrow && isRemoteShard)
+if (canThrow && isRemoteShard)
                 throw new Error('account not available'); //todo smarter throw?
             //RLP.decode(null) returns this:
-            return Uint8Array.from([]);
+return Uint8Array.from([]);
         }
         // storage hit!!! data exists in this shard
         //put this in our first reads map
         let contractStorageReads = this.firstContractStorageReads.get(addressString);
-        if (contractStorageReads == null) {
+if (contractStorageReads == null) {
             contractStorageReads = new Map();
             this.firstContractStorageReads.set(addressString, contractStorageReads);
         }
         contractStorageReads.set(keyString, storedRlp);
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`getContractStorage: addr:${addressString} key:${keyString} v:${storedValue ? bytesToHex(storedValue) : undefined}`);
-        return storedValue;
+return storedValue;
     }
     async putContractStorage(contractAddress: Address, key: Uint8Array, value: Uint8Array): Promise<void> {
         const addressString = contractAddress.toString();
         const keyString = bytesToHex(key);
-        if (this.contractStorageInvolvedCB(this, addressString, keyString, true) === false)
+if (this.contractStorageInvolvedCB(this, addressString, keyString, true) === false)
             throw new Error('unable to proceed, cant involve contract storage');
         value = unpadBytes(value); // Trims leading zeros from a Uint8Array.
         // Step 1 update the account storage
         const storedRlp = RLP.encode(value);
         let contractStorageWrites = this.allContractStorageWrites.get(addressString);
-        if (contractStorageWrites == null) {
+if (contractStorageWrites == null) {
             contractStorageWrites = new Map();
             this.allContractStorageWrites.set(addressString, contractStorageWrites);
         }
         contractStorageWrites.set(keyString, storedRlp);
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`putContractStorage: addr:${addressString} key:${keyString} v:${value ? bytesToHex(value) : undefined}`);
         //here is our take on things:
         // todo investigate..  need to figure out if the code above does actually update the CA values storage hash or if that happens in commit?
@@ -600,7 +594,7 @@ export default class TransactionState {
     }
     insertFirstContractStorageReads(address: Address, keyString: string, value: Uint8Array): void {
         const addressString = address.toString();
-        if (this.contractStorageInvolvedCB(this, addressString, keyString, true) === false)
+if (this.contractStorageInvolvedCB(this, addressString, keyString, true) === false)
             throw new Error('unable to proceed, cant involve contract storage');
         // todo research the meaning of this next line!!!!, borrowed from existing ethereumJS code
         value = unpadBytes(value);
@@ -608,7 +602,7 @@ export default class TransactionState {
         // let storedRlp = RLP.encode(value)
         const storedRlp = value;
         let contractStorageReads = this.firstContractStorageReads.get(addressString);
-        if (contractStorageReads == null) {
+if (contractStorageReads == null) {
             contractStorageReads = new Map();
             this.firstContractStorageReads.set(addressString, contractStorageReads);
         }
@@ -648,8 +642,7 @@ export default class TransactionState {
     debugTraceLog(message: string): void {
     }
     checkpoint(): void {
-        if (ShardeumFlags.CheckpointRevertSupport === false)
-            return;
+if (ShardeumFlags.CheckpointRevertSupport === false) return;
         //we need checkpoint / revert stack support for accounts so that gas is handled correctly
         //this.allAccountWritesStack.push(this.allAccountWrites)
         this.allAccountWritesStack.push(new Map<string, Uint8Array>());
@@ -660,8 +653,7 @@ export default class TransactionState {
         // if (this.debugTrace) console.log('checkpoint: allAccountWritesStack', this.logAccountWritesStack(this.allAccountWritesStack))
     }
     commit(): void {
-        if (ShardeumFlags.CheckpointRevertSupport === false)
-            return;
+if (ShardeumFlags.CheckpointRevertSupport === false) return;
         // can use this se we only commit once until there is another checkpoint?
         // if(this.canCommit === false){
         //   //todo log this
@@ -683,9 +675,9 @@ export default class TransactionState {
         //I think it is best to clear this. this will allow the newest values to get in
         //this does make some assumptions about how many times commit is called though..
         this.checkpointCount--;
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`checkpointCount:${this.checkpointCount} commit `);
-        if (this.checkpointCount > 0) {
+if (this.checkpointCount > 0) {
             //pop the top checkpoint
             const accountWrites = this.allAccountWritesStack.pop();
             const newTop = this.allAccountWritesStack[this.allAccountWritesStack.length - 1];
@@ -695,15 +687,14 @@ export default class TransactionState {
             }
             // if (this.debugTrace) console.log('commit: updated allAccountWritesStack', this.logAccountWritesStack(this.allAccountWritesStack))
         }
-        else if (this.checkpointCount === 0)
+else if (this.checkpointCount === 0)
             // if (this.debugTrace) console.log('commit: allAccountWritesStack', this.logAccountWritesStack(this.allAccountWritesStack))
             this.flushToCommittedValues();
         //not 100% sure if we should do this...
         //this.allAccountWrites.clear()
     }
     revert(): void {
-        if (ShardeumFlags.CheckpointRevertSupport === false)
-            return;
+if (ShardeumFlags.CheckpointRevertSupport === false) return;
         //we need checkpoint / revert stack support for accounts so that gas is handled correctly
         //the top of the stack becomes our base level set of values.
         //this.allAccountWrites = this.allAccountWritesStack.pop()
@@ -714,14 +705,14 @@ export default class TransactionState {
         this.allContractStorageWrites.clear();
         this.allContractBytesWritesByAddress.clear();
         this.checkpointCount--;
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`checkpointCount:${this.checkpointCount} revert `);
-        if (this.checkpointCount === 0) {
+if (this.checkpointCount === 0) {
             //I think this is just supposed to tell the cache(if we had one) to save values to the trie
             // how does that apply to what we have given that we have no cache.
             //this.flushToCommittedValues()
         }
-        if (ShardeumFlags.VerboseLogs) {
+if (ShardeumFlags.VerboseLogs) {
             // monitor counts the last tried remote accounts
             const lastAccountTryRemote = this.tryRemoteHistory.account.length > 0
                 ? this.tryRemoteHistory.account[this.tryRemoteHistory.account.length - 1]
@@ -732,19 +723,19 @@ export default class TransactionState {
             const lastCodeBytesTryRemote = this.tryRemoteHistory.codeBytes.length > 0
                 ? this.tryRemoteHistory.codeBytes[this.tryRemoteHistory.codeBytes.length - 1]
                 : null;
-            if (lastAccountTryRemote != null)
+if (lastAccountTryRemote != null)
                 this.monitorEventCB('shardeum', 'eoa_ca inject miss', 1, lastAccountTryRemote);
-            if (lastStorageTryRemote != null)
+if (lastStorageTryRemote != null)
                 this.monitorEventCB('shardeum', 'account storage inject miss', 1, lastStorageTryRemote);
-            if (lastCodeBytesTryRemote != null)
+if (lastCodeBytesTryRemote != null)
                 this.monitorEventCB('shardeum', 'code bytes miss', 1, lastCodeBytesTryRemote);
         }
     }
     flushToCommittedValues(): void {
-        if (this.debugTrace)
+if (this.debugTrace)
             this.debugTraceLog(`Flushing the allAccountWritesStack to committedAccountWrites`);
         const allAtOnce = false;
-        if (allAtOnce) {
+if (allAtOnce) {
             this.committedAccountWrites.clear();
             for (let i = this.allAccountWritesStack.length - 1; i >= 0; i--) {
                 // eslint-disable-next-line security/detect-object-injection
@@ -752,18 +743,18 @@ export default class TransactionState {
                 //process all the values in the stack
                 for (const [key, value] of accountWrites.entries()) {
                     //if our flattened list does not have the value yet
-                    if (this.committedAccountWrites.has(key) === false)
+if (this.committedAccountWrites.has(key) === false)
                         //then flatten the value from the stack into it
                         this.committedAccountWrites.set(key, value);
                 }
             }
         }
-        else {
+else {
             // this version commits one layer at a time /////
             const accountWrites = this.allAccountWritesStack.pop();
             for (const [key, value] of accountWrites.entries()) {
                 //if our flattened list does not have the value yet
-                if (this.committedAccountWrites.has(key) === false)
+if (this.committedAccountWrites.has(key) === false)
                     //then flatten the value from the stack into it
                     this.committedAccountWrites.set(key, value);
             }
@@ -778,7 +769,7 @@ export default class TransactionState {
             account.balance = readableAccount.balance;
             resultMap.set(key, account);
         }
-        return resultMap;
+return resultMap;
     }
     logAccountWritesStack(accountWritesStack: Map<string, Uint8Array>[]): unknown[] {
         const resultStack = [];
@@ -786,6 +777,6 @@ export default class TransactionState {
             const readableAccountWrites = this.logAccountWrites(accountWrites);
             resultStack.push(readableAccountWrites);
         }
-        return resultStack;
+return resultStack;
     }
 }

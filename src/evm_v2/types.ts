@@ -271,7 +271,7 @@ export interface ExecResult {
     /**
      * Return value from the contract
      */
-    returnValue: Uint8Array;
+returnValue: Uint8Array;
     /**
      * Array of logs that the contract emitted
      */
@@ -335,13 +335,13 @@ export interface Blockchain {
 }
 export class DefaultBlockchain implements Blockchain {
     async getBlock(): Promise<MockBlock> {
-        return {
+return {
             hash(): Uint8Array {
-                return zeros(32);
+return zeros(32);
             },
         };
     }
     shallowCopy(): this {
-        return this;
+return this;
     }
 }

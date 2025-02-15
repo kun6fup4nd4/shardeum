@@ -309,7 +309,7 @@ function createOpcodes(opcodes: OpcodeEntryFee): OpcodeList {
     const result: OpcodeList = new Map();
     for (const [key, value] of Object.entries(opcodes)) {
         const code = parseInt(key, 10);
-        if (isNaN(value.fee))
+if (isNaN(value.fee))
             value.fee = 0;
         result.set(code, new Opcode({
             code,
@@ -317,7 +317,7 @@ function createOpcodes(opcodes: OpcodeEntryFee): OpcodeList {
             ...value,
         }));
     }
-    return result;
+return result;
 }
 type OpcodeContext = {
     dynamicGasHandlers: Map<number, AsyncDynamicGasHandler | SyncDynamicGasHandler>;
@@ -336,29 +336,27 @@ export function getOpcodesForHF(common: Common, customOpcodes?: CustomOpcode[]):
     const handlersCopy = new Map(handlers);
     const dynamicGasHandlersCopy = new Map(dynamicGasHandlers);
     for (let fork = 0; fork < hardforkOpcodes.length; fork++) {
-        if (common.gteHardfork(hardforkOpcodes[fork].hardfork))
-            opcodeBuilder = { ...opcodeBuilder, ...hardforkOpcodes[fork].opcodes };
+if (common.gteHardfork(hardforkOpcodes[fork].hardfork)) opcodeBuilder = { ...opcodeBuilder, ...hardforkOpcodes[fork].opcodes };
     }
     for (const eipOps of eipOpcodes) {
-        if (common.isActivatedEIP(eipOps.eip))
-            opcodeBuilder = { ...opcodeBuilder, ...eipOps.opcodes };
+if (common.isActivatedEIP(eipOps.eip)) opcodeBuilder = { ...opcodeBuilder, ...eipOps.opcodes };
     }
     for (const key in opcodeBuilder) {
         const baseFee = Number(common.param('gasPrices', opcodeBuilder[key].name.toLowerCase()));
         // explicitly verify that we have defined a base fee
-        if (baseFee === undefined)
+if (baseFee === undefined)
             throw new Error(`base fee not defined for: ${opcodeBuilder[key].name}`);
         opcodeBuilder[key].fee = baseFee;
     }
-    if (customOpcodes)
+if (customOpcodes)
         for (const _code of customOpcodes) {
             const code = <any>_code;
-            if (code.logicFunction === undefined) {
+if (code.logicFunction === undefined) {
                 delete opcodeBuilder[code.opcode];
                 continue;
             }
             // Sanity checks
-            if (code.opcodeName === undefined || code.baseFee === undefined) {
+if (code.opcodeName === undefined || code.baseFee === undefined) {
                 throw new Error(`Custom opcode ${code.opcode} does not have the required values: opcodeName and baseFee are required`);
             }
             const entry = {
@@ -370,13 +368,12 @@ export function getOpcodesForHF(common: Common, customOpcodes?: CustomOpcode[]):
                 },
             };
             opcodeBuilder = { ...opcodeBuilder, ...entry };
-            if (code.gasFunction !== undefined) {
+if (code.gasFunction !== undefined)
                 dynamicGasHandlersCopy.set(code.opcode, code.gasFunction);
-            }
             // logicFunction is never undefined
             handlersCopy.set(code.opcode, code.logicFunction);
         }
-    return {
+return {
         dynamicGasHandlers: dynamicGasHandlersCopy,
         handlers: handlersCopy,
         opcodes: createOpcodes(opcodeBuilder),

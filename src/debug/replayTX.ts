@@ -36,11 +36,11 @@ export async function createAccount(addressStr: string, balance = BigInt(0)): Pr
         accountType: AccountType.Account,
     };
     WrappedEVMAccountFunctions.updateEthAccountHash(wrappedEVMAccount);
-    return wrappedEVMAccount;
+return wrappedEVMAccount;
 }
 function getApplyTXState(txId: string, estimateOnly: boolean): ShardeumState {
     let shardeumState = shardeumStateTXMap.get(txId);
-    if (shardeumState == null) {
+if (shardeumState == null) {
         shardeumState = new ShardeumState({ common: evmCommon });
         const transactionState = new TransactionState();
         transactionState.initData(shardeumState, {
@@ -53,50 +53,48 @@ function getApplyTXState(txId: string, estimateOnly: boolean): ShardeumState {
                 //     address,
                 //   })
                 // ) The correct shardus key for missing CB should be printed by tryGetRemoteAccountCB before this
-                return true;
+return true;
             },
             contractStorageMiss: async () => {
-                return false;
+return false;
             },
             accountInvolved: (txState: TransactionState, address: string) => {
                 // Missing EOA/CA (Type 0) will halt here
                 const { found, shardusKey } = hasAccount(address);
-                if (!found)
-                    return false;
-                return true;
+if (!found) return false;
+return true;
             },
             contractStorageInvolved: (txState: TransactionState, address: string, key: string) => {
                 const { account, shardusKey } = getKey(address, key, AccountType.ContractStorage);
-                if (!account) {
-                    if (estimateOnly)
-                        return false;
-                    return true; // Always return true so that blank accounts are created for missing accounts
+if (!account) {
+if (estimateOnly) return false;
+return true; // Always return true so that blank accounts are created for missing accounts
                 }
-                return true;
+return true;
             },
             tryGetRemoteAccountCB: async (transactionState: TransactionState, type: AccountType, address: string, key: string) => {
                 const { account, shardusKey } = getKey(address, key, type);
-                if (!account && type != AccountType.ContractStorage) {
+if (!account && type != AccountType.ContractStorage) {
                 }
-                return account;
+return account;
             },
             monitorEventCB: () => {
-                return undefined;
+return undefined;
             },
         }, txId, undefined, undefined);
         shardeumState.setTransactionState(transactionState);
         shardeumStateTXMap.set(txId, shardeumState);
     }
-    return shardeumState;
+return shardeumState;
 }
 const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccount>, execOptions: {
     structLogs: boolean;
     gasEstimate: boolean;
 }, estimateOnly: boolean): Promise<void> => {
-    if (estimateOnly) {
+if (estimateOnly) {
         const preRunState = getApplyTXState('0', estimateOnly);
         await estimateGas(txJson, preRunState, wrappedStates, EVM);
-        return;
+return;
     }
     const tx = txJson;
     const txTimestamp = getInjectedOrGeneratedTimestamp({ tx: tx });
@@ -109,33 +107,31 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
     // TODO: Do I set appData in above shardeumState?
     const validatorStakedAccounts: Map<string, OperatorAccountInfo> = new Map();
     for (const accountId in wrappedStates) {
-        if (shardusReceiptAddress === accountId)
+if (shardusReceiptAddress === accountId)
             //have to skip the created receipt account
             continue;
         // eslint-disable-next-line security/detect-object-injection
         const wrappedEVMAccount: WrappedEVMAccount = wrappedStates[accountId] as WrappedEVMAccount;
         fixDeserializedWrappedEVMAccount(wrappedEVMAccount);
         let address;
-        if (wrappedEVMAccount.accountType === AccountType.ContractCode)
-            address = Address.fromString(wrappedEVMAccount.contractAddress);
-        else
-            address = Address.fromString(wrappedEVMAccount.ethAddress);
-        if (wrappedEVMAccount.accountType === AccountType.Account) {
+if (wrappedEVMAccount.accountType === AccountType.ContractCode) address = Address.fromString(wrappedEVMAccount.contractAddress);
+else address = Address.fromString(wrappedEVMAccount.ethAddress);
+if (wrappedEVMAccount.accountType === AccountType.Account) {
             shardeumState._transactionState.insertFirstAccountReads(address, wrappedEVMAccount.account);
-            if (wrappedEVMAccount.operatorAccountInfo)
+if (wrappedEVMAccount.operatorAccountInfo)
                 validatorStakedAccounts.set(wrappedEVMAccount.ethAddress, wrappedEVMAccount.operatorAccountInfo);
         }
-        else if (wrappedEVMAccount.accountType === AccountType.ContractCode)
+else if (wrappedEVMAccount.accountType === AccountType.ContractCode)
             shardeumState._transactionState.insertFirstContractBytesReads(address, wrappedEVMAccount.codeByte);
-        else if (wrappedEVMAccount.accountType === AccountType.ContractStorage)
+else if (wrappedEVMAccount.accountType === AccountType.ContractStorage)
             shardeumState._transactionState.insertFirstContractStorageReads(address, wrappedEVMAccount.key, wrappedEVMAccount.value);
     }
     // Create new CA account if it is a contract deploy tx
-    if (transaction.to == null) {
+if (transaction.to == null) {
         const senderEvmAddress = senderAddress.toString();
         const senderShardusAddress = toShardusAddress(senderEvmAddress, AccountType.Account);
         const senderWrappedEVMAccount = AccountsStorage.getAccount(senderShardusAddress) as WrappedEVMAccount;
-        if (senderWrappedEVMAccount) {
+if (senderWrappedEVMAccount) {
             fixDeserializedWrappedEVMAccount(senderWrappedEVMAccount);
             const predictedContractAddressString = '0x' + predictContractAddress(senderWrappedEVMAccount).toString('hex');
             const createdAccount: WrappedEVMAccount = await createAccount(predictedContractAddressString);
@@ -170,7 +166,7 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
             const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
             gas += gasUsedPreviousStep;
             const memory: ITraceData[] = [];
-            if (options.disableMemory !== true) {
+if (options.disableMemory !== true) {
                 // We get the memory as one large array.
                 // Let's cut it up into 32 byte chunks as required by the spec.
                 let index = 0;
@@ -181,7 +177,7 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
                 }
             }
             const stack: ITraceData[] = [];
-            if (options.disableStack !== true)
+if (options.disableStack !== true)
                 for (const stackItem of event.stack) {
                     const traceData = TraceData.from(Buffer.from(stackItem.toString(16), 'hex'));
                     stack.push(traceData);
@@ -199,18 +195,18 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
             };
             // The gas difference calculated for each step is indicative of gas consumed in
             // the previous step. Gas consumption in the final step will always be zero.
-            if (structLogs.length)
+if (structLogs.length)
                 structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
-            if (options.disableStorage === true) {
+if (options.disableStorage === true) {
                 // Add the struct log as is - nothing more to do.
                 structLogs.push(structLog);
                 next();
             }
-            else {
+else {
                 const { depth: eventDepth } = event;
-                if (currentDepth > eventDepth)
+if (currentDepth > eventDepth)
                     storageStack.pop();
-                else if (currentDepth < eventDepth)
+else if (currentDepth < eventDepth)
                     storageStack.push(new TraceStorageMap());
                 currentDepth = eventDepth;
                 switch (event.opcode.name) {
@@ -261,7 +257,7 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
         skipNonce: true,
         networkAccount: networkAccount.data,
     }, customEVM);
-    if (execOptions.structLogs) {
+if (execOptions.structLogs) {
     }
 };
 const parseCommandLineArgs = (): {
@@ -277,7 +273,7 @@ const parseCommandLineArgs = (): {
         gasEstimate: false,
     };
     const fileName = args.filter((arg) => !arg.startsWith('-'));
-    if (fileName.length !== 1)
+if (fileName.length !== 1)
         process.exit(1);
     const file = fileName[0];
     const flags = args.filter((arg) => arg.startsWith('-'));
@@ -297,7 +293,7 @@ const parseCommandLineArgs = (): {
                 break;
         }
     }
-    return { file, options };
+return { file, options };
 };
 const { file, options } = parseCommandLineArgs();
 ShardeumFlags.VerboseLogs = process.env.VERBOSE_LOGS === 'true';
@@ -307,14 +303,14 @@ else
     initEVMSingletons()
         .then(() => {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
-        if (!fs.existsSync(file)) {
+if (!fs.existsSync(file)) {
             throw new Error('File not found');
         }
         const estimateOnly = loadStatesFromJson(file);
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         const txJson = Utils.safeJsonParse(fs.readFileSync(file, 'utf8'));
         const transaction = estimateOnly ? txJson.txData : txJson.tx.originalTxData;
-        return runTransaction(transaction, accounts, options, estimateOnly);
+return runTransaction(transaction, accounts, options, estimateOnly);
     })
         .then(() => {
     })

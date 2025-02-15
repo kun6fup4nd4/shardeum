@@ -29,40 +29,38 @@ export const validateTxnFields =
     const { tx } = timestampedTx;
     const txnTimestamp: number = getInjectedOrGeneratedTimestamp(timestampedTx);
     const appData = fixBigIntLiteralsToBigInt(originalAppData);
-    if (!txnTimestamp)
-        return {
+if (!txnTimestamp) return {
             success: false,
             reason: 'Invalid transaction timestamp',
             txnTimestamp,
         };
     const txId = generateTxId(tx);
-    if (isSetCertTimeTx(tx)) {
+if (isSetCertTimeTx(tx)) {
         const setCertTimeTx = tx as SetCertTime;
         const result = validateSetCertTimeTx(setCertTimeTx);
-        return {
+return {
             success: result.isValid,
             reason: result.reason,
             txnTimestamp,
         };
     }
-    if (isInternalTx(tx)) {
+if (isInternalTx(tx)) {
         const internalTX = tx as InternalTx;
         let success = false;
         let reason = '';
         // validate internal TX
-        if (isInternalTXGlobal(internalTX) === true)
-            return {
+if (isInternalTXGlobal(internalTX) === true) return {
                 success: true,
                 reason: '',
                 txnTimestamp,
             };
-        else if (tx.internalTXType === InternalTXType.ChangeConfig ||
+else if (tx.internalTXType === InternalTXType.ChangeConfig ||
             tx.internalTXType === InternalTXType.ChangeNetworkParam)
             try {
                 // DEFINATION:
                 // Valid signature is a cryptocraphically valid signature
                 // that is signed by a key which is defined on the server and has enough security clearance
-                if (!tx.sign) {
+if (!tx.sign) {
                     success = false;
                     reason = 'No signature found';
                 }
@@ -76,11 +74,11 @@ export const validateTxnFields =
                 // if the signatures in the payload is larger than the allowed public keys, it is invalid
                 // this prevent loop exhaustion abuses
                 const sig_are_valid = verifyMultiSigs(txWithoutSign, sigs, allowedPublicKeys, requiredSigs, DevSecurityLevel.High);
-                if (sig_are_valid === true) {
+if (sig_are_valid === true) {
                     success = true;
                     reason = 'Valid';
                 }
-                else {
+else {
                     success = false;
                     reason = 'Invalid signatures';
                 }
@@ -89,79 +87,75 @@ export const validateTxnFields =
                 success = false;
                 reason = 'Signature verification thrown exception';
             }
-        else if (tx.internalTXType === InternalTXType.InitRewardTimes) {
+else if (tx.internalTXType === InternalTXType.InitRewardTimes) {
             const result = InitRewardTimesTx.validateFields(tx as InitRewardTimes, shardus);
             success = result.success;
             reason = result.reason;
         }
-        else if (tx.internalTXType === InternalTXType.ClaimReward) {
+else if (tx.internalTXType === InternalTXType.ClaimReward) {
             const result = validateClaimRewardTx(tx as ClaimRewardTX, shardus);
             success = result.isValid;
             reason = result.reason;
         }
-        else if (tx.internalTXType === InternalTXType.Penalty) {
+else if (tx.internalTXType === InternalTXType.Penalty) {
             const result = validatePenaltyTX(txId, tx as PenaltyTX);
             success = result.isValid;
             reason = result.reason;
         }
-        else if (tx.internalTXType === InternalTXType.InitNetwork) {
+else if (tx.internalTXType === InternalTXType.InitNetwork) {
             const latestCycles = shardus.getLatestCycles();
-            if (latestCycles == null || latestCycles.length === 0)
-                return {
+if (latestCycles == null || latestCycles.length === 0) return {
                     success: false,
                     reason,
                     txnTimestamp: txnTimestamp,
                 };
             const cycle = latestCycles[0];
-            if (cycle.counter > 1)
-                return {
+if (cycle.counter > 1) return {
                     success: false,
                     reason,
                     txnTimestamp: txnTimestamp,
                 };
             success = crypto.verifyObj(internalTX as InternalTxWithSingleSign);
-            return {
+return {
                 success,
                 reason,
                 txnTimestamp: txnTimestamp,
             };
         }
-        else if (tx.internalTXType === InternalTXType.TransferFromSecureAccount) {
+else if (tx.internalTXType === InternalTXType.TransferFromSecureAccount) {
             // Perform thorough verification
             const verifyResult = validateTransferFromSecureAccount(tx, shardus);
-            if (!verifyResult.success)
-                return {
+if (!verifyResult.success) return {
                     success,
                     reason: verifyResult.reason,
                     txnTimestamp,
                 };
-            return {
+return {
                 success: true,
                 reason: 'Valid TransferFromSecureAccount transaction',
                 txnTimestamp,
             };
         }
-        else
+else
             try {
                 success = crypto.verifyObj(internalTX as InternalTxWithSingleSign);
             }
             catch (e) {
                 reason = 'Invalid signature for internal tx';
             }
-        return {
+return {
             success,
             reason,
             txnTimestamp: txnTimestamp,
         };
     }
-    if (isDebugTx(tx)) {
-        if (!ShardeumFlags.debugTxEnabled)
-            return {
+if (isDebugTx(tx)) {
+if (!ShardeumFlags.debugTxEnabled) return {
                 success: false,
                 reason: 'Debug TX is not allowed',
                 txnTimestamp,
             };
-        return {
+return {
             success: true,
             reason: 'always valid',
             txnTimestamp,
@@ -177,84 +171,79 @@ export const validateTxnFields =
         //const txId = '0x' + crypto.hashObj(timestampedTx.tx)
         const txHash = bytesToHex(transaction.hash());
         //limit debug app data size.  (a queue would be nicer, but this is very simple)
-        if (debugAppdata.size > 1000)
+if (debugAppdata.size > 1000)
             debugAppdata.clear();
         debugAppdata.set(txHash, appData);
-        if (!gasValid)
-            return {
+if (!gasValid) return {
                 success: false,
                 reason: 'Not enough gas to execute transaction',
                 txnTimestamp,
             };
-        else if (!isSigned)
-            return {
+else if (!isSigned) return {
                 success: false,
                 reason: 'Transaction is not signed',
                 txnTimestamp,
             };
-        else if (!isSignatureValid)
-            return {
+else if (!isSignatureValid) return {
                 success: false,
                 reason: 'Transaction signature is invalid',
                 txnTimestamp,
             };
-        else {
+else {
             success = true;
             reason = '';
         }
         // Chain ID validation
         let chainId = BigInt(-1);
-        if (transaction && transaction.common.chainId)
-            chainId = transaction.common.chainId();
-        if (chainId !== BigInt(ShardeumFlags.ChainID)) {
+if (transaction && transaction.common.chainId) chainId = transaction.common.chainId();
+if (chainId !== BigInt(ShardeumFlags.ChainID)) {
             success = false;
             reason = `Transaction chain ID is invalid.`;
         }
-        if (ShardeumFlags.txBalancePreCheck && appData != null) {
+if (ShardeumFlags.txBalancePreCheck && appData != null) {
             let minBalance: bigint; // Calculate the minimun balance with the transaction value added in
-            if (ShardeumFlags.chargeConstantTxFee) {
+if (ShardeumFlags.chargeConstantTxFee) {
                 const minBalanceUsd = BigInt(ShardeumFlags.constantTxFeeUsd);
                 minBalance =
                     scaleByStabilityFactor(minBalanceUsd, AccountsStorage.cachedNetworkAccount) + transaction.value;
             }
-            else
-                minBalance = transaction.getUpfrontCost(); // tx.gasLimit * tx.gasPrice + tx.value
+else minBalance = transaction.getUpfrontCost(); // tx.gasLimit * tx.gasPrice + tx.value
             const accountBalance = appData.balance;
-            if (accountBalance < minBalance) {
+if (accountBalance < minBalance) {
                 success = false;
                 reason = `Sender Insufficient Balance. Sender: ${senderAddress.toString()}, MinBalance: ${minBalance.toString()}, Account balance: ${accountBalance.toString()}, Difference: ${(minBalance - accountBalance).toString()}`;
             }
-            else {
+else {
             }
         }
-        if (ShardeumFlags.txNoncePreCheck && appData != null) {
+if (ShardeumFlags.txNoncePreCheck && appData != null) {
             const txNonce = parseInt(transaction.nonce.toString(10));
             const perfectCount = appData.nonce + appData.queueCount;
             const exactCount = appData.nonce;
-            if (ShardeumFlags.looseNonceCheck)
-                if (isWithinRange(txNonce, perfectCount, ShardeumFlags.nonceCheckRange)) {
+if (ShardeumFlags.looseNonceCheck)
+if (isWithinRange(txNonce, perfectCount, ShardeumFlags.nonceCheckRange)) {
                 }
-                else {
+else {
                     success = false;
                     reason = `Transaction nonce is not within +/- ${ShardeumFlags.nonceCheckRange} of perfectCount ${perfectCount}  txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
                 }
-            else if (txNonce != perfectCount) {
+else if (txNonce != perfectCount) {
                 success = false;
                 reason = `Transaction nonce != ${perfectCount}  txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
             }
-            else {
+else {
             }
             // ExactNonce check
-            if (ShardeumFlags.exactNonceCheck)
-                if (txNonce != exactCount) {
+if (ShardeumFlags.exactNonceCheck)
+if (txNonce != exactCount) {
                     success = false;
                     reason = `Transaction nonce != ${exactCount} (ExactNonce) txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
                 }
-                else {
+else {
                 }
         }
         const isStakeRelatedTx: boolean = isStakingEVMTx(transaction);
-        if (shardusConfig.features.dappFeature1enabled &&
+if (shardusConfig.features.dappFeature1enabled &&
             appData &&
             !appData.internalTx &&
             !isStakeRelatedTx) {
@@ -263,73 +252,72 @@ export const validateTxnFields =
                 (transaction.data == null ||
                     transaction.data.length === 0 ||
                     bytesToHex(transaction.data) === emptyCodeHash);
-            if (!isCoinTransfer)
-                return {
+if (!isCoinTransfer) return {
                     success: false,
                     reason: 'Invalid transaction fields',
                     txnTimestamp,
                 };
         }
-        if (appData && appData.internalTx && appData.internalTXType === InternalTXType.Stake) {
+if (appData && appData.internalTx && appData.internalTXType === InternalTXType.Stake) {
             appData.internalTx = getStakeTxBlobFromEVMTx(transaction);
             appData.internalTx.stake = BigInt(appData.internalTx.stake);
             const stakeCoinsTx = appData.internalTx as StakeCoinsTX;
             const networkAccount = AccountsStorage.cachedNetworkAccount;
             const minStakeAmountUsd = networkAccount.current.stakeRequiredUsd;
             const minStakeAmount = scaleByStabilityFactor(minStakeAmountUsd, AccountsStorage.cachedNetworkAccount);
-            if (typeof stakeCoinsTx.stake === 'object')
+if (typeof stakeCoinsTx.stake === 'object')
                 stakeCoinsTx.stake = BigInt(stakeCoinsTx.stake);
-            if (stakeCoinsTx.nominator == null ||
+if (stakeCoinsTx.nominator == null ||
                 stakeCoinsTx.nominator.toLowerCase() !== senderAddress.toString()) {
                 success = false;
                 reason = `Invalid nominator address in stake coins tx`;
             }
-            else if (stakeCoinsTx.nominee == null) {
+else if (stakeCoinsTx.nominee == null) {
                 success = false;
                 reason = `Invalid nominee address in stake coins tx`;
             }
-            else if (!/^[A-Fa-f0-9]{64}$/.test(stakeCoinsTx.nominee)) {
+else if (!/^[A-Fa-f0-9]{64}$/.test(stakeCoinsTx.nominee)) {
                 //TODO: NEED to potentially write a custom faster test that avoids regex so we can avoid a regex-dos attack
                 success = false;
                 reason = 'Invalid nominee address in stake coins tx';
             }
-            else if (stakeCoinsTx.stake !== transaction.value) {
+else if (stakeCoinsTx.stake !== transaction.value) {
                 success = false;
                 reason = `Tx value and stake amount are different`;
             }
-            else if (stakeCoinsTx.stake < minStakeAmount) {
+else if (stakeCoinsTx.stake < minStakeAmount) {
                 success = false;
                 reason = `Stake amount is less than minimum required stake amount`;
-                if (appData.nominatorAccount && ShardeumFlags.fixExtraStakeLessThanMin) {
+if (appData.nominatorAccount && ShardeumFlags.fixExtraStakeLessThanMin) {
                     const wrappedEVMAccount = appData.nominatorAccount as WrappedEVMAccount;
-                    if (wrappedEVMAccount.operatorAccountInfo) {
+if (wrappedEVMAccount.operatorAccountInfo) {
                         const existingStake = typeof wrappedEVMAccount.operatorAccountInfo.stake === 'string'
                             ? BigInt(wrappedEVMAccount.operatorAccountInfo.stake)
                             : wrappedEVMAccount.operatorAccountInfo.stake;
-                        if (existingStake !== BigInt(0) && stakeCoinsTx.stake > BigInt(0)) {
+if (existingStake !== BigInt(0) && stakeCoinsTx.stake > BigInt(0)) {
                             success = true;
                             reason = '';
                         }
                     }
                 }
             }
-            if (appData.nomineeAccount) {
+if (appData.nomineeAccount) {
                 const nodeAccount = appData.nomineeAccount as NodeAccount2;
-                if (nodeAccount.nominator &&
+if (nodeAccount.nominator &&
                     nodeAccount.nominator.toLowerCase() !== stakeCoinsTx.nominator.toLowerCase())
-                    return {
+return {
                         success: false,
                         reason: `This node is already staked by another account!`,
                         txnTimestamp,
                     };
             }
-            if (appData.nominatorAccount) {
+if (appData.nominatorAccount) {
                 const wrappedEVMAccount = appData.nominatorAccount as WrappedEVMAccount;
-                if (wrappedEVMAccount.operatorAccountInfo)
-                    if (wrappedEVMAccount.operatorAccountInfo.nominee) {
-                        if (wrappedEVMAccount.operatorAccountInfo.nominee.toLowerCase() !==
+if (wrappedEVMAccount.operatorAccountInfo)
+if (wrappedEVMAccount.operatorAccountInfo.nominee) {
+if (wrappedEVMAccount.operatorAccountInfo.nominee.toLowerCase() !==
                             stakeCoinsTx.nominee.toLowerCase())
-                            return {
+return {
                                 success: false,
                                 reason: `This account has already staked to a different node.`,
                                 txnTimestamp,
@@ -337,58 +325,58 @@ export const validateTxnFields =
                     }
             }
         }
-        if (appData && appData.internalTx && appData.internalTXType === InternalTXType.Unstake) {
+if (appData && appData.internalTx && appData.internalTXType === InternalTXType.Unstake) {
             appData.internalTx = getStakeTxBlobFromEVMTx(transaction);
             const unstakeCoinsTX = appData.internalTx as UnstakeCoinsTX;
-            if (unstakeCoinsTX.nominator == null ||
+if (unstakeCoinsTX.nominator == null ||
                 unstakeCoinsTX.nominator.toLowerCase() !== senderAddress.toString()) {
                 success = false;
                 reason = `Invalid nominator address in stake coins tx`;
             }
-            else if (unstakeCoinsTX.nominee == null) {
+else if (unstakeCoinsTX.nominee == null) {
                 success = false;
                 reason = `Invalid nominee address in stake coins tx`;
             }
             // TODO - let unstake for a node that has never get active(rewardStartTime = 0); but this is a bit risky. need to think through again
-            if (!appData.nominatorAccount) {
+if (!appData.nominatorAccount) {
                 success = false;
                 reason = `This sender account is not found!`;
             }
-            else if (appData.nomineeAccount) {
+else if (appData.nomineeAccount) {
                 const nodeAccount = appData.nomineeAccount as NodeAccount2;
-                if (!nodeAccount.nominator) {
+if (!nodeAccount.nominator) {
                     success = false;
                     reason = `No one has staked to this account!`;
                 }
-                else if (_base16BNParser(nodeAccount.stakeLock) === BigInt(0)) {
+else if (_base16BNParser(nodeAccount.stakeLock) === BigInt(0)) {
                     success = false;
                     reason = `There is no staked amount in this node!`;
                 }
-                else if (nodeAccount.nominator.toLowerCase() !== unstakeCoinsTX.nominator.toLowerCase()) {
+else if (nodeAccount.nominator.toLowerCase() !== unstakeCoinsTX.nominator.toLowerCase()) {
                     success = false;
                     reason = `This node is staked by another account. You can't unstake it!`;
                 }
-                else if (shardus.isOnStandbyList(nodeAccount.id) === true) {
+else if (shardus.isOnStandbyList(nodeAccount.id) === true) {
                     success = false;
                     reason = `This node is in the network's Standby list. You can unstake only after the node leaves the Standby list!`;
                 }
-                else if (shardus.isNodeActiveByPubKey(nodeAccount.id) === true) {
+else if (shardus.isNodeActiveByPubKey(nodeAccount.id) === true) {
                     success = false;
                     reason = `This node is still active in the network. You can unstake only after the node leaves the network!`;
                 }
-                else if (shardus.isNodeSelectedByPubKey(nodeAccount.id)) {
+else if (shardus.isNodeSelectedByPubKey(nodeAccount.id)) {
                     success = false;
                     reason = `This node is still selected in the network. You can unstake only after the node leaves the network!`;
                 }
-                else if (shardus.isNodeReadyByPubKey(nodeAccount.id)) {
+else if (shardus.isNodeReadyByPubKey(nodeAccount.id)) {
                     success = false;
                     reason = `This node is still in ready state in the network. You can unstake only after the node leaves the network!`;
                 }
-                else if (shardus.isNodeSyncingByPubKey(nodeAccount.id)) {
+else if (shardus.isNodeSyncingByPubKey(nodeAccount.id)) {
                     success = false;
                     reason = `This node is still syncing in the network. You can unstake only after the node leaves the network!`;
                 }
-                else if (nodeAccount.rewardEndTime === 0 &&
+else if (nodeAccount.rewardEndTime === 0 &&
                     nodeAccount.rewardStartTime > 0 &&
                     !(unstakeCoinsTX.force && ShardeumFlags.allowForceUnstake)) {
                     //note that if both end time and start time are 0 it is ok to unstake
@@ -396,7 +384,7 @@ export const validateTxnFields =
                     reason = `No reward endTime set, can't unstake node yet`;
                 }
             }
-            else {
+else {
                 success = false;
                 reason = `This nominee node is not found!`;
             }
@@ -406,7 +394,7 @@ export const validateTxnFields =
         success = false;
         reason = e.message;
     }
-    return {
+return {
         success,
         reason,
         txnTimestamp,

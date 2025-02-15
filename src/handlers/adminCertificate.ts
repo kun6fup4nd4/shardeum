@@ -18,33 +18,29 @@ export interface PutAdminCertResult {
 }
 function validatePutAdminCertRequest(req: PutAdminCertRequest, shardus: Shardus): ValidatorError {
     const publicKey = shardus.crypto.getPublicKey();
-    if (!req.nominee || req.nominee === '' || req.nominee.length !== 64 || req.nominee != publicKey)
-        return { success: false, reason: 'Invalid nominee address' };
+if (!req.nominee || req.nominee === '' || req.nominee.length !== 64 || req.nominee != publicKey) return { success: false, reason: 'Invalid nominee address' };
     try {
-        if (!crypto.verifyObj(req))
-            return { success: false, reason: 'Invalid signature for AdminCert' };
+if (!crypto.verifyObj(req)) return { success: false, reason: 'Invalid signature for AdminCert' };
     }
     catch (e) {
-        return { success: false, reason: 'Invalid signature for QueryCert tx' };
+return { success: false, reason: 'Invalid signature for QueryCert tx' };
     }
     try {
         const pkClearance = shardus.getDevPublicKey(req.sign.owner);
-        if (pkClearance == null)
-            return { success: false, reason: 'Unauthorized! no getDevPublicKey defined' };
-        if (pkClearance &&
+if (pkClearance == null) return { success: false, reason: 'Unauthorized! no getDevPublicKey defined' };
+if (pkClearance &&
             (!shardus.crypto.verify(req, pkClearance) ||
                 shardus.ensureKeySecurity(pkClearance, DevSecurityLevel.High) === false))
-            return { success: false, reason: 'Unauthorized! Please use higher level auth key.' };
+return { success: false, reason: 'Unauthorized! Please use higher level auth key.' };
     }
     catch (e) {
-        return { success: false, reason: 'Invalid signature for QueryCert tx' };
+return { success: false, reason: 'Invalid signature for QueryCert tx' };
     }
-    return { success: true, reason: '' };
+return { success: true, reason: '' };
 }
 export async function putAdminCertificateHandler(req: Request, shardus: Shardus): Promise<PutAdminCertResult | ValidatorError> {
     const certReq = req.body as PutAdminCertRequest;
     const reqValidationResult = validatePutAdminCertRequest(certReq, shardus);
-    if (!reqValidationResult.success)
-        return reqValidationResult;
-    return { success: true, signedAdminCert: certReq };
+if (!reqValidationResult.success) return reqValidationResult;
+return { success: true, signedAdminCert: certReq };
 }

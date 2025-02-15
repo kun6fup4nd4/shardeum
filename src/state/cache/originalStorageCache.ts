@@ -9,7 +9,7 @@ export class OriginalStorageCache {
         this.getContractStorage = getContractStorage;
     }
     async get(address: Address, key: Uint8Array): Promise<Uint8Array> {
-        return await this.getContractStorage(address, key, true);
+return await this.getContractStorage(address, key, true);
         // const addressHex = bytesToUnprefixedHex(address.bytes)
         // const map = this.map.get(addressHex)
         // if (map !== undefined) {

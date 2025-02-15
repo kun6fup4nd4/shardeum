@@ -34,13 +34,13 @@ class Storage {
     }
     async init(): Promise<void> {
         await this.storage.init();
-        if (!isServiceMode()) {
+if (!isServiceMode()) {
             //would be neat if this wasn't needed here (refactor so storage stays more generic?)
             await this.storage.runCreate('CREATE TABLE if not exists `accountsEntry` (`accountId` VARCHAR(255) NOT NULL, `timestamp` BIGINT NOT NULL, `data` JSON NOT NULL, PRIMARY KEY (`accountId`))');
-            if (ShardeumFlags.NewStorageIndex)
+if (ShardeumFlags.NewStorageIndex)
                 //add index to timestamp
                 await this.storage.run('CREATE INDEX IF NOT EXISTS timestamp1 ON accountsEntry(timestamp)');
-            if (ShardeumFlags.enableRIAccountsCache) {
+if (ShardeumFlags.enableRIAccountsCache) {
                 await this.storage.runCreate('CREATE TABLE if not exists `riAccountsCache` (`accountId` VARCHAR(255) NOT NULL, `timestamp` BIGINT NOT NULL, `data` JSON NOT NULL, PRIMARY KEY (`accountId`))');
                 await this.storage.run('CREATE INDEX IF NOT EXISTS timestampIdx ON riAccountsCache(timestamp)');
             }
@@ -60,7 +60,7 @@ class Storage {
         await this.storage.close();
     }
     _checkInit(): void {
-        if (!this.initialized)
+if (!this.initialized)
             throw new Error('Storage not initialized.');
     }
     async createOrReplaceAccountEntry(accountEntry: AccountsEntry): Promise<void> {
@@ -81,8 +81,7 @@ class Storage {
                 attributes: { exclude: ['createdAt', 'updatedAt', 'id'] },
                 raw: true,
             });
-            if (result.length > 0)
-                return result[0];
+if (result.length > 0) return result[0];
         }
         catch (e) {
             throw new Error(e);
@@ -96,7 +95,7 @@ class Storage {
             });
             const cacheSize = await this.getRIAccountsCacheSize();
             // if actual cache size is greater than the max allowed, delete the oldest entries
-            if (cacheSize > ShardeumFlags.riAccountsCacheSize) {
+if (cacheSize > ShardeumFlags.riAccountsCacheSize) {
                 const deleteSize = ShardeumFlags.riAccountsDeleteBatchSize;
                 await this.deleteOldestRIAccountsFromCache(deleteSize);
             }
@@ -110,7 +109,7 @@ class Storage {
         try {
             const query = `SELECT COUNT(*) FROM riAccountsCache`;
             const result = await this._query(query, []);
-            return result[0]['COUNT(*)'];
+return result[0]['COUNT(*)'];
         }
         catch (e) {
             throw new Error(e);
@@ -136,8 +135,7 @@ class Storage {
                 attributes: { exclude: ['createdAt', 'updatedAt', 'id'] },
                 raw: true,
             });
-            if (result.length > 0)
-                return result[0];
+if (result.length > 0) return result[0];
         }
         catch (e) {
             throw new Error(e);
@@ -147,17 +145,17 @@ class Storage {
         limit = Number(limit);
         tsStart = Number(tsStart);
         tsEnd = Number(tsEnd);
-        if (accountStart && !/^[0-9a-fA-F]*$/.test(accountStart))
+if (accountStart && !/^[0-9a-fA-F]*$/.test(accountStart))
             throw new Error('accountStart should be an empty string or a string with only upper or lower case hex chars.');
-        if (accountEnd && !/^[0-9a-fA-F]*$/.test(accountEnd))
+if (accountEnd && !/^[0-9a-fA-F]*$/.test(accountEnd))
             throw new Error('accountEnd should be an empty string or a string with only upper or lower case hex chars.');
-        if (accountOffset && !/^[0-9a-fA-F]*$/.test(accountOffset))
+if (accountOffset && !/^[0-9a-fA-F]*$/.test(accountOffset))
             throw new Error('accountOffset should be an empty string or a string with only upper or lower case hex chars.');
-        if (isNaN(limit) || isNaN(tsStart) || isNaN(tsEnd))
+if (isNaN(limit) || isNaN(tsStart) || isNaN(tsEnd))
             throw new Error('arguments should be numbers.');
-        if (tsStart < 0 || tsEnd < 0 || tsEnd < tsStart)
+if (tsStart < 0 || tsEnd < 0 || tsEnd < tsStart)
             throw new Error('Invalid timestamp range.');
-        if (limit <= 0)
+if (limit <= 0)
             throw new Error('Invalid limit. Must be a positive number');
         const query = `SELECT * FROM accountsEntry WHERE (timestamp, accountId) >= (?, ?) 
                      AND timestamp < ? 
@@ -167,7 +165,7 @@ class Storage {
         this._checkInit();
         try {
             const result = await this._query(query, params);
-            return result;
+return result;
         }
         catch (e) {
             throw new Error(e);
@@ -189,7 +187,7 @@ class Storage {
                 attributes: { exclude: ['createdAt', 'updatedAt', 'id'] },
                 raw: true,
             });
-            return result;
+return result;
         }
         catch (e) {
             throw new Error(e);
@@ -212,10 +210,10 @@ class Storage {
                 attributes: { exclude: ['createdAt', 'updatedAt', 'id'] },
                 raw: true,
             });
-            return result;
+return result;
             /*if (Array.isArray(result)) {
-              if (isAccountsEntry(result[0])) {
-                return result
+if (isAccountsEntry(result[0])) {
+return result
               }
             }*/
         }
@@ -235,7 +233,7 @@ class Storage {
     async debugSelectAllAccountsEntry(): Promise<unknown> {
         this._checkInit();
         try {
-            return await this._read(this.storageModels.accountsEntry, null, null);
+return await this._read(this.storageModels.accountsEntry, null, null);
         }
         catch (e) {
             throw new Error(e);
@@ -246,10 +244,10 @@ class Storage {
             this._checkInit();
             const query = `SELECT 1`;
             const result = await this._query(query, []);
-            return result[0][1] === 1;
+return result[0][1] === 1;
         }
         catch (e) {
-            return false;
+return false;
         }
     }
 }

@@ -53,12 +53,12 @@ export async function initEVMSingletons(): Promise<void> {
     evmCommon = new Common({ chain: 'mainnet', hardfork: Hardfork.Istanbul, eips: [3855] });
     //hack override this function.  perhaps a nice thing would be to use forCustomChain to create a custom common object
     evmCommon.chainId = (): bigint => {
-        return BigInt(chainIDBN.toString(10));
+return BigInt(chainIDBN.toString(10));
     };
     //let shardeumStateManager = new ShardeumState({ common }) //as StateManager
     shardeumBlock = new ShardeumBlock({ common: evmCommon });
     //let EVM = new VM({ common, stateManager: shardeumStateManager, blockchain: shardeumBlock })
-    if (ShardeumFlags.useShardeumVM) {
+if (ShardeumFlags.useShardeumVM) {
         const customEVM = new EthereumVirtualMachine({
             common: evmCommon,
             stateManager: undefined,
@@ -70,7 +70,7 @@ export async function initEVMSingletons(): Promise<void> {
             // blockchain: shardeumBlock,
         });
     }
-    else {
+else {
         // EVM = VM.create({ common: evmCommon, stateManager: undefined, blockchain: shardeumBlock })
     }
     // console.log('EVM_common', JSON.stringify(EVM._common, null, 4))

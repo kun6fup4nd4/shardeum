@@ -1,10 +1,8 @@
 import { concatBytes } from '@ethereumjs/util';
 const ceil = (value: number, ceiling: number): number => {
     const r = value % ceiling;
-    if (r === 0)
-        return value;
-    else
-        return value + ceiling - r;
+if (r === 0) return value;
+else return value + ceiling - r;
 };
 const CONTAINER_SIZE = 8192;
 /**
@@ -21,11 +19,10 @@ export class Memory {
      * memory to word-size.
      */
     extend(offset: number, size: number): void {
-        if (size === 0)
-            return;
+if (size === 0) return;
         const newSize = ceil(offset + size, 32);
         const sizeDiff = newSize - this._store.length;
-        if (sizeDiff > 0)
+if (sizeDiff > 0)
             this._store = concatBytes(this._store, new Uint8Array(Math.ceil(sizeDiff / CONTAINER_SIZE) * CONTAINER_SIZE));
     }
     /**
@@ -35,12 +32,11 @@ export class Memory {
      * @param value - Value
      */
     write(offset: number, size: number, value: Uint8Array): void {
-        if (size === 0)
-            return;
+if (size === 0) return;
         this.extend(offset, size);
-        if (value.length !== size)
+if (value.length !== size)
             throw new Error('Invalid value size');
-        if (offset + size > this._store.length)
+if (offset + size > this._store.length)
             throw new Error('Value exceeds memory capacity');
         this._store.set(value, offset);
     }
@@ -54,11 +50,10 @@ export class Memory {
     read(offset: number, size: number, avoidCopy?: boolean): Uint8Array {
         this.extend(offset, size);
         const loaded = this._store.subarray(offset, offset + size);
-        if (avoidCopy === true)
-            return loaded;
+if (avoidCopy === true) return loaded;
         const returnBytes = new Uint8Array(size);
         // Copy the stored "buffer" from memory into the return Uint8Array
-        returnBytes.set(loaded);
-        return returnBytes;
+returnBytes.set(loaded);
+return returnBytes;
     }
 }

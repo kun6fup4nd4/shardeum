@@ -20,7 +20,7 @@ export interface NodeAccount extends BaseAccount {
     rewardRate: bigint;
 }
 export function serializeNodeAccount(stream: VectorBufferStream, obj: NodeAccount, type: TypeIdentifierEnum, root = false): void {
-    if (root)
+if (root)
         stream.writeUInt16(type);
     stream.writeUInt8(cNodeAccountVersion);
     serializeBaseAccount(stream, obj, false);
@@ -28,11 +28,11 @@ export function serializeNodeAccount(stream: VectorBufferStream, obj: NodeAccoun
     stream.writeString(obj.hash);
     stream.writeBigUInt64(BigInt(obj.timestamp));
     // Serialize nullable string
-    if (obj.nominator !== null) {
+if (obj.nominator !== null) {
         stream.writeUInt8(1); // true flag
         stream.writeString(obj.nominator);
     }
-    else
+else
         stream.writeUInt8(0); // false flag
     stream.writeString(obj.stakeLock.toString());
     stream.writeBigUInt64(BigInt(obj.stakeTimestamp.toString()));
@@ -46,7 +46,7 @@ export function serializeNodeAccount(stream: VectorBufferStream, obj: NodeAccoun
 }
 export function deserializeNodeAccount(stream: VectorBufferStream): NodeAccount {
     const version = stream.readUInt8();
-    if (version > cNodeAccountVersion)
+if (version > cNodeAccountVersion)
         throw new Error('NodeAccount version mismatch');
     const baseAccount = deserializeBaseAccount(stream);
     const id = stream.readString();
@@ -54,7 +54,7 @@ export function deserializeNodeAccount(stream: VectorBufferStream): NodeAccount 
     const timestamp = Number(stream.readBigUInt64());
     // Deserialize nullable string
     let nominator = null;
-    if (stream.readUInt8() === 1)
+if (stream.readUInt8() === 1)
         // true flag
         nominator = stream.readString();
     const stakeLock = BigInt(stream.readString());
@@ -66,7 +66,7 @@ export function deserializeNodeAccount(stream: VectorBufferStream): NodeAccount 
     const nodeAccountStats = Utils.safeJsonParse(stream.readString()) as NodeAccountStats;
     const rewarded = stream.readUInt8() === 1;
     const rewardRate = BigInt(stream.readBigUInt64());
-    return {
+return {
         ...baseAccount,
         id,
         hash,

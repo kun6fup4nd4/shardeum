@@ -19,20 +19,17 @@ export async function injectInitRewardTimesTx(shardus, eventData: ShardusTypes.S
     } as InitRewardTimes;
     // check if this node has node account data
     let wrappedData: ShardusTypes.WrappedData = await shardus.getLocalOrRemoteAccount(eventData.publicKey);
-    if (wrappedData == null || wrappedData.data == null) {
+if (wrappedData == null || wrappedData.data == null) {
         //try one more time
         wrappedData = await shardus.getLocalOrRemoteAccount(eventData.publicKey);
-        if (wrappedData == null || wrappedData.data == null)
-            return;
+if (wrappedData == null || wrappedData.data == null) return;
     }
     const nodeAccount = wrappedData.data as NodeAccount2;
     // check if the nodeAccount has nomimator data
-    if (nodeAccount.nominator == null)
-        return;
+if (nodeAccount.nominator == null) return;
     // check if nodeAccount.rewardStartTime is already set to eventData.time
-    if (nodeAccount.rewardStartTime >= tx.nodeActivatedTime)
-        return;
-    if (ShardeumFlags.txHashingFix) {
+if (nodeAccount.rewardStartTime >= tx.nodeActivatedTime) return;
+if (ShardeumFlags.txHashingFix) {
         // to make sure that different nodes all submit an equivalent tx that is counted as the same tx,
         // we need to make sure that we have a deterministic timestamp
         const cycleEndTime = eventData.time;
@@ -46,87 +43,73 @@ export async function injectInitRewardTimesTx(shardus, eventData: ShardusTypes.S
         await sleep(waitTime);
     }
     tx = shardus.signAsNode(tx);
-    if (ShardeumFlags.VerboseLogs)
+if (ShardeumFlags.VerboseLogs)
         const txId = generateTxId(tx);
-    return await shardus.put(tx);
+return await shardus.put(tx);
 }
 export function validateFields(tx: InitRewardTimes, shardus: Shardus): {
     success: boolean;
     reason: string;
 } {
-    if (!tx.nominee || tx.nominee === '' || tx.nominee.length !== 64)
-        return { success: false, reason: 'invalid nominee field in setRewardTimes Tx' };
-    if (!tx.nodeActivatedTime)
-        return { success: false, reason: 'nodeActivatedTime field is not found in setRewardTimes Tx' };
-    if (tx.nodeActivatedTime < 0 || tx.nodeActivatedTime > shardeumGetTime())
-        return { success: false, reason: 'nodeActivatedTime is not correct in setRewardTimes Tx' };
+if (!tx.nominee || tx.nominee === '' || tx.nominee.length !== 64) return { success: false, reason: 'invalid nominee field in setRewardTimes Tx' };
+if (!tx.nodeActivatedTime) return { success: false, reason: 'nodeActivatedTime field is not found in setRewardTimes Tx' };
+if (tx.nodeActivatedTime < 0 || tx.nodeActivatedTime > shardeumGetTime()) return { success: false, reason: 'nodeActivatedTime is not correct in setRewardTimes Tx' };
     const isValid = crypto.verifyObj(tx);
-    if (!isValid)
-        return { success: false, reason: 'Invalid signature' };
+if (!isValid) return { success: false, reason: 'Invalid signature' };
     // only allow claim reward txs for tx data that is in the serviceQueue
-    if (!shardus.serviceQueue.containsTxData(tx.txData))
-        return { success: false, reason: 'node not in serviceQueue' };
+if (!shardus.serviceQueue.containsTxData(tx.txData)) return { success: false, reason: 'node not in serviceQueue' };
     // check txData matches tx
-    if (tx.txData.startTime !== tx.nodeActivatedTime)
-        return { success: false, reason: 'txData.startTime does not match nodeActivatedTime' };
-    if (tx.txData.publicKey !== tx.nominee)
-        return { success: false, reason: 'txData.publicKey does not match tx.nominee' };
-    return { success: true, reason: 'valid' };
+if (tx.txData.startTime !== tx.nodeActivatedTime) return { success: false, reason: 'txData.startTime does not match nodeActivatedTime' };
+if (tx.txData.publicKey !== tx.nominee) return { success: false, reason: 'txData.publicKey does not match tx.nominee' };
+return { success: true, reason: 'valid' };
 }
 export function validate(tx: InitRewardTimes, shardus: Shardus): {
     result: string;
     reason: string;
 } {
     const isValid = crypto.verifyObj(tx);
-    if (!isValid)
-        return { result: 'fail', reason: 'Invalid signature' };
-    return { result: 'pass', reason: 'valid' };
+if (!isValid) return { result: 'fail', reason: 'Invalid signature' };
+return { result: 'pass', reason: 'valid' };
 }
 export function validateInitRewardState(tx: InitRewardTimes, wrappedStates: WrappedStates): {
     result: string;
     reason: string;
 } {
     const isValid = crypto.verifyObj(tx);
-    if (!isValid)
-        return { result: 'fail', reason: 'Invalid signature' };
+if (!isValid) return { result: 'fail', reason: 'Invalid signature' };
     /* eslint-disable security/detect-object-injection */
     let nodeAccount: NodeAccount2;
-    if (isNodeAccount2(wrappedStates[tx.nominee].data))
-        nodeAccount = wrappedStates[tx.nominee].data as NodeAccount2;
+if (isNodeAccount2(wrappedStates[tx.nominee].data)) nodeAccount = wrappedStates[tx.nominee].data as NodeAccount2;
     // check if nodeAccount.rewardStartTime is already set to tx.nodeActivatedTime
-    if (nodeAccount.rewardStartTime >= tx.nodeActivatedTime)
-        return { result: 'fail', reason: 'rewardStartTime is already set' };
-    if (nodeAccount.timestamp >= tx.timestamp)
-        return { result: 'fail', reason: 'timestamp is already set' };
-    return { result: 'pass', reason: 'valid' };
+if (nodeAccount.rewardStartTime >= tx.nodeActivatedTime) return { result: 'fail', reason: 'rewardStartTime is already set' };
+if (nodeAccount.timestamp >= tx.timestamp) return { result: 'fail', reason: 'timestamp is already set' };
+return { result: 'pass', reason: 'valid' };
 }
 export function apply(shardus, tx: InitRewardTimes, txId: string, txTimestamp: number, wrappedStates: WrappedStates, applyResponse: ShardusTypes.ApplyResponse): void {
     let nodeAccount: NodeAccount2;
     const acct = wrappedStates[tx.nominee].data;
-    if (isNodeAccount2(acct))
-        nodeAccount = acct;
-    else
+if (isNodeAccount2(acct)) nodeAccount = acct;
+else
         throw new Error('tx.nominee is not a NodeAccount2');
     // check the account state against the tx
     const isValidRequest = validateInitRewardState(tx, wrappedStates);
-    if (isValidRequest.result === 'fail') {
+if (isValidRequest.result === 'fail') {
         shardus.applyResponseSetFailed(applyResponse, `initRewardTimesTx failed validateInitRewardState nominee ${tx.nominee} ${isValidRequest.reason}`);
-        return;
+return;
     }
     let network: NetworkAccount;
-    if (wrappedStates[networkAccount]?.data && isNetworkAccount(wrappedStates[networkAccount].data))
-        network = wrappedStates[networkAccount].data as NetworkAccount;
+if (wrappedStates[networkAccount]?.data && isNetworkAccount(wrappedStates[networkAccount].data)) network = wrappedStates[networkAccount].data as NetworkAccount;
     nodeAccount.rewardStartTime = tx.nodeActivatedTime;
     nodeAccount.rewardEndTime = 0;
     nodeAccount.timestamp = txTimestamp;
     nodeAccount.rewardRate = network ? _base16BNParser(network.current.nodeRewardAmountUsd) : BigInt(0);
-    if (ShardeumFlags.rewardedFalseInInitRewardTx)
+if (ShardeumFlags.rewardedFalseInInitRewardTx)
         nodeAccount.rewarded = false;
-    if (ShardeumFlags.useAccountWrites) {
+if (ShardeumFlags.useAccountWrites) {
         const wrappedAccount: NodeAccount2 = nodeAccount; // eslint-disable-line @typescript-eslint/no-explicit-any
         const wrappedChangedNodeAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(wrappedAccount);
         shardus.applyResponseAddChangedAccount(applyResponse, tx.nominee, wrappedChangedNodeAccount, txId, txTimestamp);
     }
-    if (ShardeumFlags.supportInternalTxReceipt)
+if (ShardeumFlags.supportInternalTxReceipt)
         createInternalTxReceipt(shardus, applyResponse, tx, tx.nominee, nodeAccount.nominator, txTimestamp, txId);
 }

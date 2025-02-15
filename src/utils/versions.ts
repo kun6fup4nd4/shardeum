@@ -25,5 +25,5 @@ export function readOperatorVersions(): {
     catch (e) {
         operatorGUIVersion = '';
     }
-    return { operatorCLIVersion, operatorGUIVersion };
+return { operatorCLIVersion, operatorGUIVersion };
 }

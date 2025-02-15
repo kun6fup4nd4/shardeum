@@ -56,7 +56,7 @@ export class Journal {
     }
     async putAccount(address: Address, account: Account | undefined): Promise<void> {
         this.touchAddress(address);
-        return this.stateManager.putAccount(address, account);
+return this.stateManager.putAccount(address, account);
     }
     async deleteAccount(address: Address): Promise<void> {
         this.touchAddress(address);
@@ -67,7 +67,7 @@ export class Journal {
         this.touchAccount(str);
     }
     private touchAccount(address: string): void {
-        if (!this.touched.has(address)) {
+if (!this.touched.has(address)) {
             this.touched.add(address);
             const diffArr = this.journalDiff[this.journalDiff.length - 1][1];
             diffArr[2].add(address);
@@ -92,19 +92,19 @@ export class Journal {
         for (let i = this.journalDiff.length - 1; i >= 0; i--) {
             finalI = i;
             const [height, diff] = this.journalDiff[i];
-            if (height < this.journalHeight)
+if (height < this.journalHeight)
                 break;
             const addressSet = diff[0];
             const slotsMap = diff[1];
             const touchedSet = diff[2];
             for (const address of addressSet) {
                 // Sanity check, journal should have the item
-                if (this.journal.has(address))
+if (this.journal.has(address))
                     this.journal.delete(address);
             }
             for (const [address, delSlots] of slotsMap) {
                 // Sanity check, the address SHOULD be in the journal
-                if (this.journal.has(address)) {
+if (this.journal.has(address)) {
                     const slots = this.journal.get(address)!;
                     for (const delSlot of delSlots) {
                         slots.delete(delSlot);
@@ -113,7 +113,7 @@ export class Journal {
             }
             for (const address of touchedSet) {
                 // Delete the address from the journal
-                if (address !== RIPEMD160_ADDRESS_STRING)
+if (address !== RIPEMD160_ADDRESS_STRING)
                     // If RIPEMD160 is touched, keep it touched.
                     // Default behavior for others.
                     this.touched.delete(address);
@@ -137,15 +137,14 @@ export class Journal {
      * Also cleanups any other internal fields
      */
     async cleanup(): Promise<void> {
-        if (this.common.gteHardfork(Hardfork.SpuriousDragon) === true)
+if (this.common.gteHardfork(Hardfork.SpuriousDragon) === true)
             for (const addressHex of this.touched) {
                 const address = new Address(toBytes('0x' + addressHex));
                 const account = await this.stateManager.getAccount(address);
-                if (account === undefined || account.isEmpty()) {
+if (account === undefined || account.isEmpty()) {
                     await this.deleteAccount(address);
-                    if (this.DEBUG) {
+if (this.DEBUG)
                         this._debug(`Cleanup touched account address=${address} (>= SpuriousDragon)`);
-                    }
                 }
             }
         this.cleanJournal();
@@ -153,12 +152,11 @@ export class Journal {
     }
     addAlwaysWarmAddress(addressStr: string, addToAccessList = false): void {
         const address = stripHexPrefix(addressStr);
-        if (!this.alwaysWarmJournal.has(address))
+if (!this.alwaysWarmJournal.has(address))
             this.alwaysWarmJournal.set(address, new Set());
-        if (addToAccessList && this.accessList !== undefined)
-            if (!this.accessList.has(address)) {
+if (addToAccessList && this.accessList !== undefined)
+if (!this.accessList.has(address))
                 this.accessList.set(address, new Set());
-            }
     }
     addAlwaysWarmSlot(addressStr: string, slotStr: string, addToAccessList = false): void {
         const address = stripHexPrefix(addressStr);
@@ -166,7 +164,7 @@ export class Journal {
         const slotsSet = this.alwaysWarmJournal.get(address)!;
         const slot = stripHexPrefix(slotStr);
         slotsSet.add(slot);
-        if (addToAccessList && this.accessList !== undefined)
+if (addToAccessList && this.accessList !== undefined)
             this.accessList.get(address)!.add(slot);
     }
     /**
@@ -176,7 +174,7 @@ export class Journal {
     isWarmedAddress(address: Uint8Array): boolean {
         const addressHex = bytesToUnprefixedHex(address);
         const warm = this.journal.has(addressHex) || this.alwaysWarmJournal.has(addressHex);
-        return warm;
+return warm;
     }
     /**
      * Add a warm address in the current context
@@ -184,15 +182,14 @@ export class Journal {
      */
     addWarmedAddress(addressArr: Uint8Array): void {
         const address = bytesToUnprefixedHex(addressArr);
-        if (!this.journal.has(address)) {
+if (!this.journal.has(address)) {
             this.journal.set(address, new Set());
             const diffArr = this.journalDiff[this.journalDiff.length - 1][1];
             diffArr[0].add(address);
         }
-        if (this.accessList !== undefined)
-            if (!this.accessList.has(address)) {
+if (this.accessList !== undefined)
+if (!this.accessList.has(address))
                 this.accessList.set(address, new Set());
-            }
     }
     /**
      * Returns true if the slot of the address is warm
@@ -202,16 +199,13 @@ export class Journal {
     isWarmedStorage(address: Uint8Array, slot: Uint8Array): boolean {
         const addressHex = bytesToUnprefixedHex(address);
         const slots = this.journal.get(addressHex);
-        if (slots === undefined) {
-            if (this.alwaysWarmJournal.has(addressHex))
-                return this.alwaysWarmJournal.get(addressHex)!.has(bytesToUnprefixedHex(slot));
-            return false;
+if (slots === undefined) {
+if (this.alwaysWarmJournal.has(addressHex)) return this.alwaysWarmJournal.get(addressHex)!.has(bytesToUnprefixedHex(slot));
+return false;
         }
-        if (slots.has(bytesToUnprefixedHex(slot)))
-            return true;
-        else if (this.alwaysWarmJournal.has(addressHex))
-            return this.alwaysWarmJournal.get(addressHex)!.has(bytesToUnprefixedHex(slot));
-        return false;
+if (slots.has(bytesToUnprefixedHex(slot))) return true;
+else if (this.alwaysWarmJournal.has(addressHex)) return this.alwaysWarmJournal.get(addressHex)!.has(bytesToUnprefixedHex(slot));
+return false;
     }
     /**
      * Mark the storage slot in the address as warm in the current context
@@ -221,21 +215,21 @@ export class Journal {
     addWarmedStorage(address: Uint8Array, slot: Uint8Array): void {
         const addressHex = bytesToUnprefixedHex(address);
         let slots = this.journal.get(addressHex);
-        if (slots === undefined) {
+if (slots === undefined) {
             this.addWarmedAddress(address);
             slots = this.journal.get(addressHex);
         }
         const slotStr = bytesToUnprefixedHex(slot);
-        if (!slots!.has(slotStr)) {
+if (!slots!.has(slotStr)) {
             slots!.add(slotStr);
             const diff = this.journalDiff[this.journalDiff.length - 1][1];
             const addressSlotMap = diff[1];
-            if (!addressSlotMap.has(addressHex))
+if (!addressSlotMap.has(addressHex))
                 addressSlotMap.set(addressHex, new Set());
             const slotsSet = addressSlotMap.get(addressHex)!;
             slotsSet.add(slotStr);
         }
-        if (this.accessList !== undefined) {
+if (this.accessList !== undefined) {
             // Note: in `addWarmedAddress` the address is added to warm addresses
             const addrSet = this.accessList.get(addressHex)!;
             addrSet.add(slotStr);

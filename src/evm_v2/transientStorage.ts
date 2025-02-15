@@ -28,12 +28,10 @@ export class TransientStorage implements TransientStorageInterface {
      */
     public get(addr: Address, key: Uint8Array): Uint8Array {
         const map = this._storage.get(addr.toString());
-        if (!map)
-            return new Uint8Array(32);
+if (!map) return new Uint8Array(32);
         const value = map.get(bytesToHex(key));
-        if (!value)
-            return new Uint8Array(32);
-        return value;
+if (!value) return new Uint8Array(32);
+return value;
     }
     /**
      * Put the given value for the address and key
@@ -42,12 +40,12 @@ export class TransientStorage implements TransientStorageInterface {
      * @param value the new value of the transient storage slot to set
      */
     public put(addr: Address, key: Uint8Array, value: Uint8Array): void {
-        if (key.length !== 32)
+if (key.length !== 32)
             throw new Error('Transient storage key must be 32 bytes long');
-        if (value.length > 32)
+if (value.length > 32)
             throw new Error('Transient storage value cannot be longer than 32 bytes');
         const addrString = addr.toString();
-        if (!this._storage.has(addrString))
+if (!this._storage.has(addrString))
             this._storage.set(addrString, new Map());
         const map = this._storage.get(addrString)!;
         const keyStr = bytesToHex(key);
@@ -63,7 +61,7 @@ export class TransientStorage implements TransientStorageInterface {
      * Commit all the changes since the last checkpoint
      */
     public commit(): void {
-        if (this._indices.length === 0)
+if (this._indices.length === 0)
             throw new Error('Nothing to commit');
         // by discarding the length of the array from the last time checkpoint was called, all changes are included in the last stack
         this._indices.pop();
@@ -79,7 +77,7 @@ export class TransientStorage implements TransientStorageInterface {
      */
     public revert(): void {
         const lastCheckpoint = this._indices.pop();
-        if (typeof lastCheckpoint === 'undefined')
+if (typeof lastCheckpoint === 'undefined')
             throw new Error('Nothing to revert');
         for (let i = this._changeJournal.length - 1; i >= lastCheckpoint; i--) {
             const { key, prevValue, addr } = this._changeJournal[i];
@@ -106,7 +104,7 @@ export class TransientStorage implements TransientStorageInterface {
                 result[address][key] = bytesToHex(value);
             }
         }
-        return result;
+return result;
     }
     /**
      * Clear transient storage state.

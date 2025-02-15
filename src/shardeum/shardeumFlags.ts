@@ -274,12 +274,9 @@ export const ShardeumFlags: ShardeumFlags = {
 export function updateShardeumFlag(key: string, value: string | number | boolean): void {
     /* eslint-disable security/detect-object-injection */
     try {
-        if (ShardeumFlags[key] == null)
-            return;
-        if (key === 'ServicePoints')
-            return;
-        if (typeof ShardeumFlags[key] !== typeof value)
-            return;
+if (ShardeumFlags[key] == null) return;
+if (key === 'ServicePoints') return;
+if (typeof ShardeumFlags[key] !== typeof value) return;
         ShardeumFlags[key] = value;
     }
     catch (e) {
@@ -289,17 +286,13 @@ export function updateShardeumFlag(key: string, value: string | number | boolean
 export function updateServicePoints(key1: string, key2: string, value: number): void {
     try {
         /* eslint-disable security/detect-object-injection */
-        if (!ShardeumFlags['ServicePoints'][key1])
-            return;
-        if (typeof value !== 'number')
-            return;
-        if (key1 && ShardeumFlags['ServicePoints'][key1] == null)
-            return;
-        if (key1 && key2 && ShardeumFlags['ServicePoints'][key1][key2] == null)
-            return;
-        if (key1 && key2)
+if (!ShardeumFlags['ServicePoints'][key1]) return;
+if (typeof value !== 'number') return;
+if (key1 && ShardeumFlags['ServicePoints'][key1] == null) return;
+if (key1 && key2 && ShardeumFlags['ServicePoints'][key1][key2] == null) return;
+if (key1 && key2)
             ShardeumFlags['ServicePoints'][key1][key2] = value;
-        else if (key1)
+else if (key1)
             ShardeumFlags['ServicePoints'][key1] = value;
     }
     catch (e) {

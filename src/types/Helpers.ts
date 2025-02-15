@@ -11,13 +11,13 @@ import { deserializeSecureAccount, serializeSecureAccount } from './SecureAccoun
 export const binarySerializer = <T>(data: T, serializerFunc: (stream: VectorBufferStream, obj: T, root?: boolean) => void): VectorBufferStream => {
     const serializedPayload = new VectorBufferStream(0);
     serializerFunc(serializedPayload, data, true);
-    return serializedPayload;
+return serializedPayload;
 };
 export const binaryDeserializer = <T>(data: Buffer, deserializerFunc: (stream: VectorBufferStream, root?: boolean) => T): T => {
     const payloadStream = VectorBufferStream.fromBuffer(data);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const payloadType = payloadStream.readUInt16();
-    return deserializerFunc(payloadStream);
+return deserializerFunc(payloadStream);
 };
 export const accountSerializer = <T extends BaseAccount>(data: T): VectorBufferStream => {
     const serializedPayload = new VectorBufferStream(0);
@@ -48,25 +48,25 @@ export const accountSerializer = <T extends BaseAccount>(data: T): VectorBufferS
             serializedPayload.writeString(Utils.safeStringify(data));
             break;
     }
-    return serializedPayload;
+return serializedPayload;
 };
 export const accountDeserializer = <T extends BaseAccount>(data: Buffer): T => {
     const payloadStream = VectorBufferStream.fromBuffer(data);
     const payloadType = payloadStream.readUInt16();
     switch (payloadType) {
         case TypeIdentifierEnum.cDevAccount:
-            return deserializeDevAccount(payloadStream) as unknown as T;
+return deserializeDevAccount(payloadStream) as unknown as T;
         case TypeIdentifierEnum.cNetworkAccount:
-            return deserializeNetworkAccount(payloadStream) as unknown as T;
+return deserializeNetworkAccount(payloadStream) as unknown as T;
         case TypeIdentifierEnum.cNodeAccount:
-            return deserializeNodeAccount(payloadStream) as unknown as T;
+return deserializeNodeAccount(payloadStream) as unknown as T;
         case TypeIdentifierEnum.cNodeAccount2:
-            return deserializeNodeAccount(payloadStream) as unknown as T;
+return deserializeNodeAccount(payloadStream) as unknown as T;
         case TypeIdentifierEnum.cSecureAccount:
-            return deserializeSecureAccount(payloadStream) as unknown as T;
+return deserializeSecureAccount(payloadStream) as unknown as T;
         case TypeIdentifierEnum.cWrappedEVMAccount:
-            return deserializeWrappedEVMAccount(payloadStream) as unknown as T;
+return deserializeWrappedEVMAccount(payloadStream) as unknown as T;
         default:
-            return Utils.safeJsonParse(payloadStream.readString()) as unknown as T;
+return Utils.safeJsonParse(payloadStream.readString()) as unknown as T;
     }
 };

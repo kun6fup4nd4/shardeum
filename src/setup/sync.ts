@@ -18,7 +18,7 @@ import { initializeSecureAccount, SecureAccountConfig } from '../shardeum/secure
 function isDebugMode(): boolean {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    return config.server.mode === 'debug';
+return config.server.mode === 'debug';
 }
 const oneEth = BigInt(10) ** BigInt(18);
 export const networkAccount = config.server.globalAccount;
@@ -27,20 +27,20 @@ const defaultBalance = isDebugMode() ? oneEth * BigInt(ShardeumFlags.debugDefaul
 const debugShardeumState: ShardeumState = null;
 export const ONE_SECOND = 1000;
 export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void> => {
-    if (ShardeumFlags.useAccountWrites)
+if (ShardeumFlags.useAccountWrites)
         shardus.useAccountWrites();
-    if (ShardeumFlags.GlobalNetworkAccount) {
+if (ShardeumFlags.GlobalNetworkAccount) {
         const existingNetworkAccount = await shardus.getLocalOrRemoteAccount(networkAccount);
-        if (existingNetworkAccount || shardus.getNetworkMode() === 'restore') {
+if (existingNetworkAccount || shardus.getNetworkMode() === 'restore') {
             /* prettier-ignore */ if (logFlags.important_as_error)
                 shardus.log('NETWORK_ACCOUNT ALREADY EXISTED: ', existingNetworkAccount);
             await sleep(ONE_SECOND * 5);
-            return;
+return;
         }
-        if (shardus.p2p.isFirstSeed) {
+if (shardus.p2p.isFirstSeed) {
             await sleep(ONE_SECOND * 5);
             const nodeId = shardus.getNodeId();
-            if (ShardeumFlags.DebugRestoreFile != null && ShardeumFlags.DebugRestoreFile != '') {
+if (ShardeumFlags.DebugRestoreFile != null && ShardeumFlags.DebugRestoreFile != '') {
                 const loadOptions = {
                     file: ShardeumFlags.DebugRestoreFile,
                 };
@@ -49,7 +49,7 @@ export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void
             //create genesis accounts before network account since nodes will wait for the network account
             /* prettier-ignore */ if (logFlags.important_as_error)
                 shardus.log(`node ${nodeId} GENERATED_A_NEW_NETWORK_ACCOUNT: `);
-            if (ShardeumFlags.SetupGenesisAccount) {
+if (ShardeumFlags.SetupGenesisAccount) {
                 let skippedAccountCount = 0;
                 let accountCopies = [];
                 // Create genesis accounts from secure accounts
@@ -60,7 +60,7 @@ export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void
                     const amount = BigInt(mergedGenesisAccounts[address].wei);
                     const shardusAccountID = toShardusAddress(address, AccountType.Account);
                     const existingAccount = await shardus.getLocalOrRemoteAccount(shardusAccountID);
-                    if (existingAccount) {
+if (existingAccount) {
                         skippedAccountCount += 1;
                         continue;
                     }
@@ -98,7 +98,7 @@ export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void
                 for (const devPublicKey of Object.keys(devPublicKeys)) {
                     // eslint-disable-next-line security/detect-object-injection
                     const level = devPublicKeys[devPublicKey];
-                    if (level >= DevSecurityLevel.Low) {
+if (level >= DevSecurityLevel.Low) {
                         const { account, cycle } = createDevAccount(devPublicKey, shardus.getLatestCycles());
                         const devAccount: any = account; // eslint-disable-line @typescript-eslint/no-explicit-any
                         await AccountsStorage.setAccount(devAccount.id, devAccount);
@@ -114,9 +114,9 @@ export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void
                     }
                 }
                 await shardus.debugCommitAccountCopies(accountCopies);
-                if (ShardeumFlags.forwardGenesisAccounts) {
+if (ShardeumFlags.forwardGenesisAccounts) {
                     accountCopies = accountCopies.map((account) => {
-                        return Utils.safeJsonParse(Utils.safeStringify(account));
+return Utils.safeJsonParse(Utils.safeStringify(account));
                     });
                     await shardus.forwardAccounts({ accounts: accountCopies, receipts: [] });
                 }
@@ -131,7 +131,7 @@ export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void
             };
             shardus.setGlobal(networkAccount, '', value, when, networkAccount); // need to set addressHash = '' because it's not created yet.
         }
-        else
+else
             while (!(await shardus.getLocalOrRemoteAccount(networkAccount))) {
                 await sleep(1000);
             }
@@ -173,8 +173,7 @@ async function manuallyCreateAccount(ethAccountID: string, balance = defaultBala
     const address = Address.fromString(ethAccountID);
     const account = await debugTXState.getAccount(address);
     let cycleStart = 0;
-    if (latestCycles != null && latestCycles.length > 0)
-        cycleStart = latestCycles[0].start * 1000;
+if (latestCycles != null && latestCycles.length > 0) cycleStart = latestCycles[0].start * 1000;
     const wrappedEVMAccount = {
         timestamp: cycleStart,
         account,
@@ -183,7 +182,7 @@ async function manuallyCreateAccount(ethAccountID: string, balance = defaultBala
         accountType: AccountType.Account,
     };
     WrappedEVMAccountFunctions.updateEthAccountHash(wrappedEVMAccount);
-    return { accountId: shardusAccountID, wrappedEVMAccount, cycle: latestCycles[0] };
+return { accountId: shardusAccountID, wrappedEVMAccount, cycle: latestCycles[0] };
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createDevAccount = (accountId: string, latestCycles: any): {
@@ -191,8 +190,7 @@ const createDevAccount = (accountId: string, latestCycles: any): {
     cycle: any;
 } => {
     let cycleStart = 0;
-    if (latestCycles != null && latestCycles.length > 0)
-        cycleStart = latestCycles[0].start * 1000;
+if (latestCycles != null && latestCycles.length > 0) cycleStart = latestCycles[0].start * 1000;
     const account: DevAccount = {
         id: accountId,
         accountType: AccountType.DevAccount,
@@ -200,7 +198,7 @@ const createDevAccount = (accountId: string, latestCycles: any): {
         timestamp: cycleStart,
     };
     account.hash = WrappedEVMAccountFunctions._calculateAccountHash(account);
-    return { account, cycle: latestCycles[0] };
+return { account, cycle: latestCycles[0] };
 };
 /**
  * Cant be used in parallel
@@ -209,7 +207,7 @@ const createDevAccount = (accountId: string, latestCycles: any): {
 function getDebugTXState(evmCommon: any): ShardeumState {
     const txId = '7'.repeat(64);
     let shardeumState = debugShardeumState;
-    if (shardeumState == null) {
+if (shardeumState == null) {
         shardeumState = new ShardeumState({ common: evmCommon });
         const transactionState = new TransactionState();
         transactionState.initData(shardeumState, {
@@ -223,9 +221,9 @@ function getDebugTXState(evmCommon: any): ShardeumState {
         }, txId, undefined, undefined);
         shardeumState.setTransactionState(transactionState);
     }
-    else
+else
         shardeumState.resetState();
-    return shardeumState;
+return shardeumState;
 }
 async function createAccount(addressStr: string, stateManager: any, balance: bigint = defaultBalance): Promise<WrappedEVMAccount> {
     const accountAddress = Address.fromString(addressStr);
@@ -246,7 +244,7 @@ async function createAccount(addressStr: string, stateManager: any, balance: big
         accountType: AccountType.Account,
     };
     WrappedEVMAccountFunctions.updateEthAccountHash(wrappedEVMAccount);
-    return wrappedEVMAccount;
+return wrappedEVMAccount;
 }
 /**
  * fake callbacks so that the debug transactionState object can work with creating test accounts
@@ -254,28 +252,28 @@ async function createAccount(addressStr: string, stateManager: any, balance: big
  */
 async function accountMissNoOp(_transactionState: TransactionState, _address: string): Promise<boolean> {
     const isRemoteShard = false;
-    return isRemoteShard;
+return isRemoteShard;
 }
 async function contractStorageMissNoOp(_transactionState: TransactionState, _address: string, _key: string): Promise<boolean> {
     const isRemoteShard = false;
-    return isRemoteShard;
+return isRemoteShard;
 }
 function accountInvolvedNoOp(_transactionState: TransactionState, _address: string, _isRead: boolean): boolean {
-    return true;
+return true;
 }
 function contractStorageInvolvedNoOp(_transactionState: TransactionState, _address: string, _key: string, _isRead: boolean): boolean {
-    return true;
+return true;
 }
 function tryGetRemoteAccountCBNoOp(_transactionState: TransactionState, _type: AccountType, _address: string, _key: string): Promise<WrappedEVMAccount> {
-    return undefined;
+return undefined;
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
 function createGenesisAccountsFromSecureAccounts(secureAccounts: SecureAccountConfig[]): Record<string, {
     wei: string;
 }> {
-    return secureAccounts.reduce((acc, account) => {
+return secureAccounts.reduce((acc, account) => {
         acc[account.SourceFundsAddress] = { wei: account.SourceFundsBalance };
-        return acc;
+return acc;
     }, {} as Record<string, {
         wei: string;
     }>);

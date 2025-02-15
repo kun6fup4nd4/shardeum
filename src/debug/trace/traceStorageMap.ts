@@ -5,6 +5,6 @@ export class TraceStorageMap extends Map<ITraceData, ITraceData> {
         for (const [key, value] of this) {
             obj[key.toJSON()] = value;
         }
-        return obj;
+return obj;
     }
 }

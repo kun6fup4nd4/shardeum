@@ -11,7 +11,7 @@ export function runWithContext(fn: (...args: unknown[]) => void, context: Record
     });
 }
 export async function runWithContextAsync(fn: () => Promise<void> | void, context: Record<string, unknown>): Promise<void> {
-    return new Promise((resolve, reject) => {
+return new Promise((resolve, reject) => {
         namespace.runAndReturn(async () => {
             Object.keys(context).forEach((key) => {
                 // eslint-disable-next-line security/detect-object-injection
@@ -29,5 +29,5 @@ export async function runWithContextAsync(fn: () => Promise<void> | void, contex
 }
 // Function to get a value from the context
 export function getContextValue<T>(key: string): T | undefined {
-    return namespace.get(key);
+return namespace.get(key);
 }

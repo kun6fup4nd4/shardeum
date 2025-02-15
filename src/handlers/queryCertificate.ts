@@ -43,32 +43,27 @@ export interface ValidatorError {
     reason: string;
 }
 function validateQueryCertRequest(req: QueryCertRequest): ValidatorError {
-    if (!isValidAddress(req.nominator))
-        return { success: false, reason: 'Invalid nominator address' };
-    if (!req.nominee || req.nominee === '' || req.nominee.length !== 64)
-        return { success: false, reason: 'Invalid nominee address' };
+if (!isValidAddress(req.nominator)) return { success: false, reason: 'Invalid nominator address' };
+if (!req.nominee || req.nominee === '' || req.nominee.length !== 64) return { success: false, reason: 'Invalid nominee address' };
     try {
-        if (!crypto.verifyObj(req))
-            return { success: false, reason: 'Invalid signature for QueryCert tx' };
+if (!crypto.verifyObj(req)) return { success: false, reason: 'Invalid signature for QueryCert tx' };
     }
     catch (e) {
-        return { success: false, reason: 'Invalid signature for QueryCert tx' };
+return { success: false, reason: 'Invalid signature for QueryCert tx' };
     }
-    return { success: true, reason: '' };
+return { success: true, reason: '' };
 }
 async function getNodeAccount(randomConsensusNode: ShardusTypes.ValidatorNodeDetails, nodeAccountId: string): Promise<NodeAccountQueryResponse | ValidatorError> {
     try {
         let queryString = `/account/:address`.replace(':address', nodeAccountId);
         queryString += `?type=${AccountType.NodeAccount2}`;
         const res = await shardusGetFromNode<NodeAccountAxiosResponse>(randomConsensusNode, queryString);
-        if (!res.data.account)
-            return { success: false, reason: errNodeAccountNotFound };
-        if (res.data.error == errNodeBusy)
-            return { success: false, reason: errNodeBusy };
-        return { success: true, nodeAccount: res.data.account.data } as NodeAccountQueryResponse;
+if (!res.data.account) return { success: false, reason: errNodeAccountNotFound };
+if (res.data.error == errNodeBusy) return { success: false, reason: errNodeBusy };
+return { success: true, nodeAccount: res.data.account.data } as NodeAccountQueryResponse;
     }
     catch (error) {
-        return { success: false, reason: (error as Error).message };
+return { success: false, reason: (error as Error).message };
     }
 }
 export async function getNodeAccountWithRetry(nodeAccountId: string, activeNodes: ShardusTypes.ValidatorNodeDetails[]): Promise<NodeAccountQueryResponse | ValidatorError> {
@@ -76,39 +71,35 @@ export async function getNodeAccountWithRetry(nodeAccountId: string, activeNodes
     while (i <= maxNodeAccountRetries) {
         const randomConsensusNode = getRandom(activeNodes, 1)[0];
         const resp = await getNodeAccount(randomConsensusNode, nodeAccountId);
-        if (resp.success)
-            return resp;
-        else {
+if (resp.success) return resp;
+else {
             const err = resp as ValidatorError;
-            if (err.reason == errNodeAccountNotFound)
-                return err;
-            else
+if (err.reason == errNodeAccountNotFound) return err;
+else
                 i++;
         }
     }
-    return { success: false, reason: errNodeBusy };
+return { success: false, reason: errNodeBusy };
 }
 async function getEVMAccountDataForAddress(shardus: Shardus, evmAddress: string): Promise<WrappedEVMAccount | undefined> {
     const shardusAddress = toShardusAddress(evmAddress, AccountType.Account);
     const account = await shardus.getLocalOrRemoteAccount(shardusAddress);
-    if (!account)
-        return undefined;
+if (!account) return undefined;
     const data = account.data;
-    if (isWrappedEVMAccount(data)) {
+if (isWrappedEVMAccount(data)) {
         fixDeserializedWrappedEVMAccount(data);
-        return data;
+return data;
     }
-    return undefined;
+return undefined;
 }
 export async function getCertSignatures(shardus: Shardus, certData: StakeCert): Promise<CertSignaturesResult> {
     const signedAppData = await shardus.getAppDataSignatures('sign-stake-cert', crypto.hashObj(certData), 5, certData, 2);
-    if (!signedAppData.success)
-        return {
+if (!signedAppData.success) return {
             success: false,
             signedStakeCert: null,
         };
     certData.signs = signedAppData.signatures;
-    return { success: true, signedStakeCert: certData };
+return { success: true, signedStakeCert: certData };
 }
 /**
  * Query a random consensus node for the current node certificate by calling query-certificate
@@ -119,8 +110,7 @@ export async function getCertSignatures(shardus: Shardus, certData: StakeCert): 
  * @returns
  */
 export async function queryCertificate(shardus: Shardus, publicKey: string, activeNodes: ShardusTypes.ValidatorNodeDetails[]): Promise<CertSignaturesResult | ValidatorError> {
-    if (activeNodes.length === 0)
-        return {
+if (activeNodes.length === 0) return {
             success: false,
             reason: 'activeNodes list is 0 to get query certificate',
         };
@@ -131,18 +121,17 @@ export async function queryCertificate(shardus: Shardus, publicKey: string, acti
                 // Custom timeout because this request is expected to take a while
                 timeout: 15000,
             });
-            return res.data;
+return res.data;
         }
         catch (error) {
-            return {
+return {
                 success: false,
                 reason: 'Failed to get query certificate',
             };
         }
     };
     const accountQueryResponse = await getNodeAccountWithRetry(publicKey, activeNodes);
-    if (!accountQueryResponse.success)
-        return accountQueryResponse;
+if (!accountQueryResponse.success) return accountQueryResponse;
     const nodeAccountQueryResponse = accountQueryResponse as NodeAccountQueryResponse;
     const nominator = nodeAccountQueryResponse.nodeAccount?.nominator;
     const certRequest = {
@@ -150,7 +139,7 @@ export async function queryCertificate(shardus: Shardus, publicKey: string, acti
         nominator: nominator,
     };
     const signedCertRequest: QueryCertRequest = shardus.signAsNode(certRequest);
-    return await callQueryCertificate(signedCertRequest);
+return await callQueryCertificate(signedCertRequest);
 }
 // Move this helper function to utils or somewhere
 export async function InjectTxToConsensor(randomConsensusNodes: ShardusTypes.ValidatorNodeDetails[], tx: OpaqueTransaction // Sign Object
@@ -163,12 +152,11 @@ export async function InjectTxToConsensor(randomConsensusNodes: ShardusTypes.Val
             promises.push(promise);
         }
         const res = await raceForSuccess(promises, 5000);
-        if (!res.data.success)
-            return { success: false, reason: res.data.reason };
-        return res.data as InjectTxResponse;
+if (!res.data.success) return { success: false, reason: res.data.reason };
+return res.data as InjectTxResponse;
     }
     catch (error) {
-        return { success: false, reason: (error as Error).message };
+return { success: false, reason: (error as Error).message };
     }
 }
 async function raceForSuccess<T extends {
@@ -177,7 +165,7 @@ async function raceForSuccess<T extends {
         reason?: string;
     };
 }>(promises: Promise<T>[], timeoutMs: number): Promise<T> {
-    return new Promise((resolve, reject) => {
+return new Promise((resolve, reject) => {
         let unresolvedCount = promises.length;
         const timer = setTimeout(() => {
             reject(new Error('Timeout: Operation did not complete within the allowed time.'));
@@ -185,13 +173,13 @@ async function raceForSuccess<T extends {
         for (const promise of promises) {
             promise
                 .then((response) => {
-                if (response.data.success) {
+if (response.data.success) {
                     clearTimeout(timer);
                     resolve(response);
                 }
-                else {
+else {
                     unresolvedCount--;
-                    if (unresolvedCount === 0) {
+if (unresolvedCount === 0) {
                         clearTimeout(timer);
                         //reject(new Error('All promises failed or returned unsuccessful responses.'))
                         resolve(response);
@@ -200,7 +188,7 @@ async function raceForSuccess<T extends {
             })
                 .catch((error) => {
                 unresolvedCount--;
-                if (unresolvedCount === 0) {
+if (unresolvedCount === 0) {
                     clearTimeout(timer);
                     //reject(new Error('All promises failed or returned unsuccessful responses: ' + error))
                     reject(error);
@@ -212,33 +200,27 @@ async function raceForSuccess<T extends {
 export async function queryCertificateHandler(req: Request, shardus: Shardus): Promise<CertSignaturesResult | ValidatorError> {
     const queryCertReq = req.body as QueryCertRequest;
     const reqValidationResult = validateQueryCertRequest(queryCertReq);
-    if (!reqValidationResult.success)
-        return reqValidationResult;
+if (!reqValidationResult.success) return reqValidationResult;
     const operatorAccount = await getEVMAccountDataForAddress(shardus, queryCertReq.nominator);
-    if (!operatorAccount)
-        return { success: false, reason: 'Failed to fetch operator account state' };
+if (!operatorAccount) return { success: false, reason: 'Failed to fetch operator account state' };
     let nodeAccount = await shardus.getLocalOrRemoteAccount(queryCertReq.nominee);
     nodeAccount = fixBigIntLiteralsToBigInt(nodeAccount);
-    if (!nodeAccount)
-        return { success: false, reason: 'Failed to fetch node account state' };
+if (!nodeAccount) return { success: false, reason: 'Failed to fetch node account state' };
     const currentTimestampInMillis = shardeumGetTime();
-    if (operatorAccount.operatorAccountInfo == null)
-        return {
+if (operatorAccount.operatorAccountInfo == null) return {
             success: false,
             reason: 'Operator account info is null',
         };
-    if (operatorAccount.operatorAccountInfo.certExp === null)
-        return {
+if (operatorAccount.operatorAccountInfo.certExp === null) return {
             success: false,
             reason: 'Operator certificate time is null',
         };
     // check operator cert validity
-    if (operatorAccount.operatorAccountInfo.certExp < currentTimestampInMillis)
-        return {
+if (operatorAccount.operatorAccountInfo.certExp < currentTimestampInMillis) return {
             success: false,
             reason: 'Operator certificate has expired',
         };
-    return await getCertSignatures(shardus, {
+return await getCertSignatures(shardus, {
         nominator: queryCertReq.nominator,
         nominee: queryCertReq.nominee,
         stake: operatorAccount.operatorAccountInfo.stake,

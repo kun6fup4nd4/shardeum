@@ -34,47 +34,44 @@ export function scheduleUpdateTicketMap(): void {
 }
 function getArchiverToRetrieveTicketType(): Archiver {
     const archiverList = getFinalArchiverList();
-    if (archiverList.length > 0)
-        return getRandom(archiverList, 1)[0];
-    return undefined;
+if (archiverList.length > 0) return getRandom(archiverList, 1)[0];
+return undefined;
 }
 async function getTicketTypesFromArchiver(archiver: Archiver): Promise<TicketType[]> {
     try {
         const url = `http://${archiver.ip}:${archiver.port}/tickets`;
         const res = await axios.get(url);
-        if (res.status >= 200 && res.status < 300)
-            return res.data;
+if (res.status >= 200 && res.status < 300) return res.data;
     }
     catch (error) {
         console.error(`[tickets][getTicketTypesFromArchiver] Error getting ticket list`, error);
     }
-    return [];
+return [];
 }
 export function clearTicketMap(): void {
     ticketTypeMap.clear();
 }
 export async function updateTicketMap(): Promise<void> {
     const archiver: Archiver = getArchiverToRetrieveTicketType();
-    if (archiver) {
+if (archiver) {
         const ticketTypes: TicketType[] = await getTicketTypesFromArchiver(archiver);
         const devPublicKeys = shardusConfig?.debug?.multisigKeys || {};
         const requiredSigs = Math.max(3, shardusConfig?.debug?.minMultiSigRequiredForGlobalTxs || 1);
         ticketTypes.forEach((ticketType: TicketType, i: number) => {
             const { sign, ...ticketTypeWithoutSign } = ticketType;
             const isValidSig = verifyMultiSigs(ticketTypeWithoutSign, sign, devPublicKeys, requiredSigs, DevSecurityLevel.High);
-            if (isValidSig)
+if (isValidSig)
                 ticketTypeMap.set(ticketType.type, ticketType);
-            else
+else
                 console.warn(`[tickets][updateTicketMap] Invalid signature for ticket ${JSON.stringify(ticketType)}`);
         });
     }
-    else
+else
         console.warn(`[tickets][updateTicketMap] No archivers found`);
 }
 export function getTicketsByType(type: string): Ticket[] {
-    if (ticketTypeMap.has(type))
-        return ticketTypeMap.get(type).data;
-    return [];
+if (ticketTypeMap.has(type)) return ticketTypeMap.get(type).data;
+return [];
 }
 export function doesTransactionSenderHaveTicketType({ ticketType, senderAddress }: {
     ticketType: TicketTypes;
@@ -92,32 +89,32 @@ export function doesTransactionSenderHaveTicketType({ ticketType, senderAddress 
     const ticketTypes = shardusConfig?.features?.tickets?.ticketTypes || [];
     const isSilverTicketsEnabled = ticketTypes?.find((tt) => tt.type === ticketType)?.enabled;
     result.enabled = isSilverTicketsEnabled;
-    if (isSilverTicketsEnabled) {
+if (isSilverTicketsEnabled) {
         let silverTicketForNominee: Ticket | undefined;
         // Retrieve all Silver Tickets using the TicketManager
         const silverTickets: Ticket[] = getTicketsByType(ticketType);
-        if (silverTickets.length > 0) {
+if (silverTickets.length > 0) {
             // Look for a Silver Ticket that matches the nominee's address (case-insensitive comparison)
             silverTicketForNominee = silverTickets.find((ticket) => {
                 try {
-                    return senderAddress.equals(Address.fromString(ticket.address));
+return senderAddress.equals(Address.fromString(ticket.address));
                 }
                 catch (e) {
                     console.error(`[ticket-master][doesNominatorHaveTicketType] Error while checking silver ticket address ${ticket.address}`, e);
                 }
-                return false;
+return false;
             });
             // If no matching Silver Ticket is found for the nominee, return a failure response
-            if (!silverTicketForNominee)
+if (!silverTicketForNominee)
                 result.reason = 'Nominee does not have a Silver Ticket';
-            else
+else
                 result.success = true;
         }
-        else
+else
             // If no Silver Tickets are found at all, return a failure response
             result.reason = 'No Silver Tickets found';
     }
-    else
+else
         result.reason = 'Silver Tickets feature is not enabled';
-    return result;
+return result;
 }

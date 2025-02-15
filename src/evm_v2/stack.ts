@@ -11,22 +11,22 @@ export class Stack {
         this._maxHeight = maxHeight ?? 1024;
     }
     get length(): number {
-        return this._store.length;
+return this._store.length;
     }
     push(value: bigint): void {
-        if (typeof value !== 'bigint')
+if (typeof value !== 'bigint')
             throw new EvmError(ERROR.INTERNAL_ERROR);
-        if (value > MAX_INTEGER_BIGINT)
+if (value > MAX_INTEGER_BIGINT)
             throw new EvmError(ERROR.OUT_OF_RANGE);
-        if (this._store.length >= this._maxHeight)
+if (this._store.length >= this._maxHeight)
             throw new EvmError(ERROR.STACK_OVERFLOW);
         this._store.push(value);
     }
     pop(): bigint {
-        if (this._store.length < 1)
+if (this._store.length < 1)
             throw new EvmError(ERROR.STACK_UNDERFLOW);
         // Length is checked above, so pop shouldn't return undefined
-        return this._store.pop()!;
+return this._store.pop()!;
     }
     /**
      * Pop multiple items from stack. Top of stack is first item
@@ -34,11 +34,10 @@ export class Stack {
      * @param num - Number of items to pop
      */
     popN(num = 1): bigint[] {
-        if (this._store.length < num)
+if (this._store.length < num)
             throw new EvmError(ERROR.STACK_UNDERFLOW);
-        if (num === 0)
-            return [];
-        return this._store.splice(-1 * num).reverse();
+if (num === 0) return [];
+return this._store.splice(-1 * num).reverse();
     }
     /**
      * Return items from the stack
@@ -49,18 +48,18 @@ export class Stack {
         const peekArray: bigint[] = [];
         for (let peek = 1; peek <= num; peek++) {
             const index = this._store.length - peek;
-            if (index < 0)
+if (index < 0)
                 throw new EvmError(ERROR.STACK_UNDERFLOW);
             peekArray.push(this._store[index]);
         }
-        return peekArray;
+return peekArray;
     }
     /**
      * Swap top of stack with an item in the stack.
      * @param position - Index of item from top of the stack (0-indexed)
      */
     swap(position: number): void {
-        if (this._store.length <= position)
+if (this._store.length <= position)
             throw new EvmError(ERROR.STACK_UNDERFLOW);
         const head = this._store.length - 1;
         const i = this._store.length - position - 1;
@@ -77,7 +76,7 @@ export class Stack {
     // Nevertheless not sure if we "loose" something here?
     // Will keep commented out for now
     dup(position: number): void {
-        if (this._store.length < position)
+if (this._store.length < position)
             throw new EvmError(ERROR.STACK_UNDERFLOW);
         const i = this._store.length - position;
         this.push(this._store[i]);

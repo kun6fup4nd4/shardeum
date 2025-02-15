@@ -22,10 +22,10 @@ export const codeAnalysis = (container: Uint8Array): {
         code: 0,
         data: 0,
     };
-    if (container[0] !== FORMAT || container[1] !== MAGIC || container[2] !== VERSION)
+if (container[0] !== FORMAT || container[1] !== MAGIC || container[2] !== VERSION)
         // Bytecode does not contain EOF1 "magic" or version number in expected positions
-        return;
-    if (
+return;
+if (
     // EOF1 bytecode must be more than 7 bytes long for EOF1 header plus code section (but no data section)
     container.length > 7 &&
         // EOF1 code section indicator
@@ -36,10 +36,9 @@ export const codeAnalysis = (container: Uint8Array): {
         // Calculate expected length of EOF1 container based on code section
         computedContainerSize = 7 + sectionSizes.code;
         // EOF1 code section must be at least 1 byte long
-        if (sectionSizes.code < 1)
-            return;
+if (sectionSizes.code < 1) return;
     }
-    else if (
+else if (
     // EOF1 container must be more than 10 bytes long if data section is included
     container.length > 10 &&
         // EOF1 code section indicator
@@ -53,13 +52,12 @@ export const codeAnalysis = (container: Uint8Array): {
         // Calculate expected length of EOF1 container based on code and data sections
         computedContainerSize = 10 + sectionSizes.code + sectionSizes.data;
         // Code & Data sizes cannot be 0
-        if (sectionSizes.code < 1 || sectionSizes.data < 1)
-            return;
+if (sectionSizes.code < 1 || sectionSizes.data < 1) return;
     }
-    if (container.length !== computedContainerSize)
+if (container.length !== computedContainerSize)
         // Computed container length based on section details does not match length of actual bytecode
-        return;
-    return sectionSizes;
+return;
+return sectionSizes;
 };
 export const validOpcodes = (code: Uint8Array): boolean => {
     // EIP-3670 - validate all opcodes
@@ -69,30 +67,28 @@ export const validOpcodes = (code: Uint8Array): boolean => {
     while (x < code.length) {
         const opcode = code[x];
         x++;
-        if (!opcodes.has(opcode))
+if (!opcodes.has(opcode))
             // No invalid/undefined opcodes
-            return false;
-        if (opcode >= 0x60 && opcode <= 0x7f) {
+return false;
+if (opcode >= 0x60 && opcode <= 0x7f) {
             // Skip data block following push
             x += opcode - 0x5f;
-            if (x > code.length - 1)
+if (x > code.length - 1)
                 // Push blocks must not exceed end of code section
-                return false;
+return false;
         }
     }
     const terminatingOpcodes = new Set([0x00, 0xf3, 0xfd, 0xfe, 0xff]);
     // Per EIP-3670, the final opcode of a code section must be STOP, RETURN, REVERT, INVALID, or SELFDESTRUCT
-    if (!terminatingOpcodes.has(code[code.length - 1]))
-        return false;
-    return true;
+if (!terminatingOpcodes.has(code[code.length - 1])) return false;
+return true;
 };
 export const getEOFCode = (code: Uint8Array): Uint8Array => {
     const sectionSizes = codeAnalysis(code);
-    if (sectionSizes === undefined)
-        return code;
-    else {
+if (sectionSizes === undefined) return code;
+else {
         const codeStart = sectionSizes.data > 0 ? 10 : 7;
-        return code.subarray(codeStart, codeStart + sectionSizes.code);
+return code.subarray(codeStart, codeStart + sectionSizes.code);
     }
 };
 export const EOF = { FORMAT, MAGIC, VERSION, codeAnalysis, validOpcodes };

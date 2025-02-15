@@ -12,11 +12,10 @@ import { createAccount } from '../replayTX';
 import { getTxSenderAddress } from '../../utils';
 export const oneSHM = BigInt(10) ** BigInt(18);
 function wrapTransaction(transaction: LegacyTransaction, impl: () => Address): LegacyTransaction {
-    return new Proxy(transaction, {
+return new Proxy(transaction, {
         get: function (target, prop, receiver): any {
-            if (prop === 'getSenderAddress')
-                return impl;
-            return Reflect.get(target, prop, receiver);
+if (prop === 'getSenderAddress') return impl;
+return Reflect.get(target, prop, receiver);
         },
     });
 }
@@ -25,30 +24,28 @@ export async function estimateGas(txData, preRunTxState: ShardeumState, wrappedS
     const senderAddress = getTxSenderAddress(transaction).address;
     const from = txData.from !== undefined ? Address.fromString(txData.from) : Address.zero();
     transaction = wrapTransaction(transaction, (): Address => {
-        return from;
+return from;
     });
     for (const accountId in wrappedStates) {
         // eslint-disable-next-line security/detect-object-injection
         const wrappedEVMAccount: WrappedEVMAccount = wrappedStates[accountId] as WrappedEVMAccount;
         fixDeserializedWrappedEVMAccount(wrappedEVMAccount);
         let address;
-        if (wrappedEVMAccount.accountType === AccountType.ContractCode)
-            address = Address.fromString(wrappedEVMAccount.contractAddress);
-        else
-            address = Address.fromString(wrappedEVMAccount.ethAddress);
-        if (wrappedEVMAccount.accountType === AccountType.Account)
+if (wrappedEVMAccount.accountType === AccountType.ContractCode) address = Address.fromString(wrappedEVMAccount.contractAddress);
+else address = Address.fromString(wrappedEVMAccount.ethAddress);
+if (wrappedEVMAccount.accountType === AccountType.Account)
             preRunTxState._transactionState.insertFirstAccountReads(address, wrappedEVMAccount.account);
-        else if (wrappedEVMAccount.accountType === AccountType.ContractCode)
+else if (wrappedEVMAccount.accountType === AccountType.ContractCode)
             preRunTxState._transactionState.insertFirstContractBytesReads(address, wrappedEVMAccount.codeByte);
-        else if (wrappedEVMAccount.accountType === AccountType.ContractStorage)
+else if (wrappedEVMAccount.accountType === AccountType.ContractStorage)
             preRunTxState._transactionState.insertFirstContractStorageReads(address, wrappedEVMAccount.key, wrappedEVMAccount.value);
     }
-    if (transaction.to == null) {
+if (transaction.to == null) {
         // console.log(JSON.stringify({ status: true, message: `creating new account`, wrappedStates }))
         const senderEvmAddress = senderAddress.toString();
         const senderShardusAddress = toShardusAddress(senderEvmAddress, AccountType.Account);
         const senderWrappedEVMAccount = AccountsStorage.getAccount(senderShardusAddress) as WrappedEVMAccount;
-        if (senderWrappedEVMAccount) {
+if (senderWrappedEVMAccount) {
             fixDeserializedWrappedEVMAccount(senderWrappedEVMAccount);
             const predictedContractAddressString = '0x' + predictContractAddress(senderWrappedEVMAccount).toString('hex');
             const createdAccount: WrappedEVMAccount = await createAccount(predictedContractAddressString);

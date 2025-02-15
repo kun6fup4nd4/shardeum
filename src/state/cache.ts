@@ -36,7 +36,7 @@ export default class Cache {
      */
     get(key: Address): Account {
         const account = this.lookup(key);
-        return account ?? new Account();
+return account ?? new Account();
     }
     /**
      * Returns the queried account or undefined.
@@ -45,13 +45,13 @@ export default class Cache {
     lookup(key: Address): Account | undefined {
         const keyStr = bytesToHex(key.bytes);
         const it = this._cache.find(keyStr);
-        if (it.node) {
+if (it.node) {
             const rlp = it.value.val;
             const account = Account.fromRlpSerializedAccount(rlp) as ShardeumAccount;
             account.virtual = it.value.virtual;
-            return account;
+return account;
         }
-        return undefined;
+return undefined;
     }
     /**
      * Returns true if the key was deleted and thus existed in the cache earlier
@@ -60,9 +60,8 @@ export default class Cache {
     keyIsDeleted(key: Address): boolean {
         const keyStr = bytesToHex(key.bytes);
         const it = this._cache.find(keyStr);
-        if (it.node)
-            return it.value.deleted;
-        return false;
+if (it.node) return it.value.deleted;
+return false;
     }
     /**
      * Looks up address in underlying trie.
@@ -70,7 +69,7 @@ export default class Cache {
      */
     async _lookupAccount(address: Address): Promise<Account | undefined> {
         const rlp = await this._trie.get(bytesToHex(address.bytes));
-        return rlp ? Account.fromRlpSerializedAccount(rlp) : undefined;
+return rlp ? Account.fromRlpSerializedAccount(rlp) : undefined;
     }
     /**
      * Looks up address in cache, if not found, looks it up
@@ -79,17 +78,17 @@ export default class Cache {
      */
     async getOrLoad(address: Address): Promise<Account> {
         let account = this.lookup(address) as ShardeumAccount;
-        if (!account) {
+if (!account) {
             account = await this._lookupAccount(address);
-            if (account)
+if (account)
                 this._update(address, account, false, false, false);
-            else {
+else {
                 account = new ShardeumAccount();
                 account.virtual = true;
                 this._update(address, account, false, false, true);
             }
         }
-        return account;
+return account;
     }
     /**
      * Warms cache by loading their respective account from trie
@@ -98,12 +97,12 @@ export default class Cache {
      */
     async warm(addresses: string[]): Promise<void> {
         for (const addressHex of addresses) {
-            if (addressHex) {
+if (addressHex) {
                 const address = new Address(Buffer.from(addressHex, 'hex'));
                 let account = await this._lookupAccount(address);
-                if (account)
+if (account)
                     this._update(address, account, false, false, false);
-                else {
+else {
                     account = new Account();
                     this._update(address, account, false, false, true);
                 }
@@ -118,7 +117,7 @@ export default class Cache {
         const it = this._cache.begin;
         let next = true;
         while (next) {
-            if (it.value && it.value.modified && !it.value.deleted) {
+if (it.value && it.value.modified && !it.value.deleted) {
                 it.value.modified = false;
                 const accountRlp = it.value.val;
                 const keyBuf = Buffer.from(it.key, 'hex');
@@ -126,7 +125,7 @@ export default class Cache {
                 next = it.hasNext;
                 it.next();
             }
-            else if (it.value && it.value.modified && it.value.deleted) {
+else if (it.value && it.value.modified && it.value.deleted) {
                 it.value.modified = false;
                 it.value.deleted = true;
                 it.value.virtual = true;
@@ -136,7 +135,7 @@ export default class Cache {
                 next = it.hasNext;
                 it.next();
             }
-            else {
+else {
                 next = it.hasNext;
                 it.next();
             }
@@ -187,9 +186,9 @@ export default class Cache {
         const keyHex = bytesToHex(key.bytes);
         const it = this._cache.find(keyHex);
         const val = value.serialize();
-        if (it.node)
+if (it.node)
             this._cache = it.update({ val, modified, deleted, virtual });
-        else
+else
             this._cache = this._cache.insert(keyHex, { val, modified, deleted, virtual });
     }
 }

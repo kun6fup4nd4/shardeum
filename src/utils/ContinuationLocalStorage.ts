@@ -8,7 +8,7 @@ export default class CLS<T> {
     // Implementing runWithNewContextAsync to handle async functions
     async runWithContextAsync(fn: () => Promise<void>): Promise<void> {
         const store = new Map<string, T>();
-        return new Promise<void>((resolve, reject) => {
+return new Promise<void>((resolve, reject) => {
             this.asyncLocalStorage.run(store, async () => {
                 try {
                     await fn();
@@ -26,6 +26,6 @@ export default class CLS<T> {
     }
     get(key: string): T | undefined {
         const store = this.asyncLocalStorage.getStore();
-        return store?.get(key);
+return store?.get(key);
     }
 }
