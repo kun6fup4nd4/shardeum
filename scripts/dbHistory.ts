@@ -67,7 +67,7 @@ async function main() {
                     }
                     updatedAccount = existingHistoryAccount;
                 }
-                else {
+                else
                     updatedAccount = {
                         accountId: account.accountId,
                         evmAddress: account.data.ethAddress,
@@ -78,7 +78,6 @@ async function main() {
                         codehash: codeHashHex,
                         typeChanged: false,
                     };
-                }
                 historyAccountMap.set(account.accountId, updatedAccount);
                 const queryString = `INSERT OR REPLACE INTO accountsHistory (accountId, evmAddress, accountType, firstSeen, lastSeen, accountBalance, codehash, typeChanged) VALUES ("${updatedAccount.accountId}", "${updatedAccount.evmAddress}", "${updatedAccount.accountType}", ${updatedAccount.firstSeen}, ${updatedAccount.lastSeen}, "${updatedAccount.accountBalance}", "${updatedAccount.codehash}", ${updatedAccount.typeChanged})`;
                 await historyDb.query(queryString, { raw: true });
@@ -104,16 +103,14 @@ async function loadDb(filename: string, isOld: boolean) {
                 tsUpgrades++;
             }
         }
-        else {
+        else
             accountsMap.set(account.accountId, account);
-        }
     }
 }
 function getDB(dbPath) {
     return new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-        if (err) {
+        if (err)
             console.error('Error opening database: ', err.message);
-        }
     });
 }
 async function getHistoryAccountsFromDB(dbPath) {
@@ -147,9 +144,8 @@ function sleep(ms) {
     });
 }
 async function createHistoryDbIfNotExist(path) {
-    if (fs.existsSync(path)) {
+    if (fs.existsSync(path))
         return;
-    }
     const db = new sqlite3.Database(path);
     await db.run('PRAGMA synchronous = OFF');
     await db.run('CREATE TABLE if not exists `accountsHistory` (`accountId` VARCHAR(255) NOT NULL, `evmAddress` VARCHAR(42) NOT NULL, `accountType` VARCHAR(3) NOT NULL, `firstSeen` BIGINT NOT NULL, `lastSeen` BIGINT NOT NULL, `accountBalance` VARCHAR(255) NOT NULL, `codehash` VARCHAR(255) NOT NULL, `typeChanged` BOOLEAN NOT NULL, PRIMARY KEY (`accountId`))');

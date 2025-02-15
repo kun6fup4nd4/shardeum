@@ -56,10 +56,9 @@ export const codeAnalysis = (container: Uint8Array): {
         if (sectionSizes.code < 1 || sectionSizes.data < 1)
             return;
     }
-    if (container.length !== computedContainerSize) {
+    if (container.length !== computedContainerSize)
         // Computed container length based on section details does not match length of actual bytecode
         return;
-    }
     return sectionSizes;
 };
 export const validOpcodes = (code: Uint8Array): boolean => {
@@ -70,31 +69,27 @@ export const validOpcodes = (code: Uint8Array): boolean => {
     while (x < code.length) {
         const opcode = code[x];
         x++;
-        if (!opcodes.has(opcode)) {
+        if (!opcodes.has(opcode))
             // No invalid/undefined opcodes
             return false;
-        }
         if (opcode >= 0x60 && opcode <= 0x7f) {
             // Skip data block following push
             x += opcode - 0x5f;
-            if (x > code.length - 1) {
+            if (x > code.length - 1)
                 // Push blocks must not exceed end of code section
                 return false;
-            }
         }
     }
     const terminatingOpcodes = new Set([0x00, 0xf3, 0xfd, 0xfe, 0xff]);
     // Per EIP-3670, the final opcode of a code section must be STOP, RETURN, REVERT, INVALID, or SELFDESTRUCT
-    if (!terminatingOpcodes.has(code[code.length - 1])) {
+    if (!terminatingOpcodes.has(code[code.length - 1]))
         return false;
-    }
     return true;
 };
 export const getEOFCode = (code: Uint8Array): Uint8Array => {
     const sectionSizes = codeAnalysis(code);
-    if (sectionSizes === undefined) {
+    if (sectionSizes === undefined)
         return code;
-    }
     else {
         const codeStart = sectionSizes.data > 0 ? 10 : 7;
         return code.subarray(codeStart, codeStart + sectionSizes.code);

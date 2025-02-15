@@ -43,12 +43,10 @@ export interface ValidatorError {
     reason: string;
 }
 function validateQueryCertRequest(req: QueryCertRequest): ValidatorError {
-    if (!isValidAddress(req.nominator)) {
+    if (!isValidAddress(req.nominator))
         return { success: false, reason: 'Invalid nominator address' };
-    }
-    if (!req.nominee || req.nominee === '' || req.nominee.length !== 64) {
+    if (!req.nominee || req.nominee === '' || req.nominee.length !== 64)
         return { success: false, reason: 'Invalid nominee address' };
-    }
     try {
         if (!crypto.verifyObj(req))
             return { success: false, reason: 'Invalid signature for QueryCert tx' };
@@ -63,12 +61,10 @@ async function getNodeAccount(randomConsensusNode: ShardusTypes.ValidatorNodeDet
         let queryString = `/account/:address`.replace(':address', nodeAccountId);
         queryString += `?type=${AccountType.NodeAccount2}`;
         const res = await shardusGetFromNode<NodeAccountAxiosResponse>(randomConsensusNode, queryString);
-        if (!res.data.account) {
+        if (!res.data.account)
             return { success: false, reason: errNodeAccountNotFound };
-        }
-        if (res.data.error == errNodeBusy) {
+        if (res.data.error == errNodeBusy)
             return { success: false, reason: errNodeBusy };
-        }
         return { success: true, nodeAccount: res.data.account.data } as NodeAccountQueryResponse;
     }
     catch (error) {
@@ -106,12 +102,11 @@ async function getEVMAccountDataForAddress(shardus: Shardus, evmAddress: string)
 }
 export async function getCertSignatures(shardus: Shardus, certData: StakeCert): Promise<CertSignaturesResult> {
     const signedAppData = await shardus.getAppDataSignatures('sign-stake-cert', crypto.hashObj(certData), 5, certData, 2);
-    if (!signedAppData.success) {
+    if (!signedAppData.success)
         return {
             success: false,
             signedStakeCert: null,
         };
-    }
     certData.signs = signedAppData.signatures;
     return { success: true, signedStakeCert: certData };
 }
@@ -124,12 +119,11 @@ export async function getCertSignatures(shardus: Shardus, certData: StakeCert): 
  * @returns
  */
 export async function queryCertificate(shardus: Shardus, publicKey: string, activeNodes: ShardusTypes.ValidatorNodeDetails[]): Promise<CertSignaturesResult | ValidatorError> {
-    if (activeNodes.length === 0) {
+    if (activeNodes.length === 0)
         return {
             success: false,
             reason: 'activeNodes list is 0 to get query certificate',
         };
-    }
     const randomConsensusNode: ShardusTypes.ValidatorNodeDetails = getRandom(activeNodes, 1)[0];
     const callQueryCertificate = async (signedCertRequest: QueryCertRequest): Promise<CertSignaturesResult | ValidatorError> => {
         try {
@@ -169,9 +163,8 @@ export async function InjectTxToConsensor(randomConsensusNodes: ShardusTypes.Val
             promises.push(promise);
         }
         const res = await raceForSuccess(promises, 5000);
-        if (!res.data.success) {
+        if (!res.data.success)
             return { success: false, reason: res.data.reason };
-        }
         return res.data as InjectTxResponse;
     }
     catch (error) {
@@ -219,38 +212,32 @@ async function raceForSuccess<T extends {
 export async function queryCertificateHandler(req: Request, shardus: Shardus): Promise<CertSignaturesResult | ValidatorError> {
     const queryCertReq = req.body as QueryCertRequest;
     const reqValidationResult = validateQueryCertRequest(queryCertReq);
-    if (!reqValidationResult.success) {
+    if (!reqValidationResult.success)
         return reqValidationResult;
-    }
     const operatorAccount = await getEVMAccountDataForAddress(shardus, queryCertReq.nominator);
-    if (!operatorAccount) {
+    if (!operatorAccount)
         return { success: false, reason: 'Failed to fetch operator account state' };
-    }
     let nodeAccount = await shardus.getLocalOrRemoteAccount(queryCertReq.nominee);
     nodeAccount = fixBigIntLiteralsToBigInt(nodeAccount);
-    if (!nodeAccount) {
+    if (!nodeAccount)
         return { success: false, reason: 'Failed to fetch node account state' };
-    }
     const currentTimestampInMillis = shardeumGetTime();
-    if (operatorAccount.operatorAccountInfo == null) {
+    if (operatorAccount.operatorAccountInfo == null)
         return {
             success: false,
             reason: 'Operator account info is null',
         };
-    }
-    if (operatorAccount.operatorAccountInfo.certExp === null) {
+    if (operatorAccount.operatorAccountInfo.certExp === null)
         return {
             success: false,
             reason: 'Operator certificate time is null',
         };
-    }
     // check operator cert validity
-    if (operatorAccount.operatorAccountInfo.certExp < currentTimestampInMillis) {
+    if (operatorAccount.operatorAccountInfo.certExp < currentTimestampInMillis)
         return {
             success: false,
             reason: 'Operator certificate has expired',
         };
-    }
     return await getCertSignatures(shardus, {
         nominator: queryCertReq.nominator,
         nominee: queryCertReq.nominee,

@@ -35,12 +35,10 @@ export async function fetchAccountDataFromCollector(accountId: string, blockNumb
                 account: WrappedEVMAccount;
             }[];
         }>(apiQuery, {});
-        if (!response.data.success) {
+        if (!response.data.success)
             throw new Error('Collector failed to return account data');
-        }
-        if (!response.data.accounts && response.data.accounts.length === 0) {
+        if (!response.data.accounts && response.data.accounts.length === 0)
             throw new Error('Collector returned no account data');
-        }
         return response.data.accounts[0].account;
     }
     catch (error) {
@@ -59,16 +57,14 @@ export async function getAccount(address: string): Promise<WrappedEVMAccount> {
         const account = await storage.getAccountsEntry(address);
         if (!account)
             return;
-        if (typeof account.data === 'string') {
+        if (typeof account.data === 'string')
             account.data = Utils.safeJsonParse(account.data) as WrappedEVMAccount;
-        }
         setCachedRIAccount(account);
         return account.data;
     }
-    else {
+    else
         // eslint-disable-next-line security/detect-object-injection
         return accounts[address];
-    }
     //return null
 }
 export async function getAccountTimestamp(address: string): Promise<number> {
@@ -77,10 +73,9 @@ export async function getAccountTimestamp(address: string): Promise<number> {
         const account = await storage.getAccountsEntry(address);
         return account.timestamp;
     }
-    else {
+    else
         // eslint-disable-next-line security/detect-object-injection
         return accounts[address]?.timestamp;
-    }
 }
 export async function accountExists(address: string): Promise<boolean> {
     if (ShardeumFlags.UseDBForAccounts === true) {
@@ -88,32 +83,28 @@ export async function accountExists(address: string): Promise<boolean> {
         const account = await storage.getAccountsEntry(address);
         return account != null;
     }
-    else {
+    else
         // eslint-disable-next-line security/detect-object-injection
         return accounts[address] != null;
-    }
 }
 export let cachedNetworkAccount: NetworkAccount; // an actual obj
 export async function getCachedNetworkAccount(): Promise<NetworkAccount> {
-    if (isServiceMode()) {
+    if (isServiceMode())
         return (await getAccount(networkAccount)) as unknown as NetworkAccount;
-    }
     return cachedNetworkAccount;
 }
 export async function setAccount(address: string, account: WrappedEVMAccount): Promise<void> {
     try {
-        if (ShardeumFlags.debugGlobalAccountUpdateFail && address === networkAccount) {
+        if (ShardeumFlags.debugGlobalAccountUpdateFail && address === networkAccount)
             return;
-        }
         if (ShardeumFlags.UseDBForAccounts === true) {
             const accountEntry = {
                 accountId: address,
                 timestamp: account.timestamp,
                 data: account,
             };
-            if (account.timestamp === 0) {
+            if (account.timestamp === 0)
                 throw new Error(`setAccount timestamp should not be 0. accountId: ${address}, data: ${JSON.stringify(account, null, '  ')}`);
-            }
             try {
                 await storage.createOrReplaceAccountEntry(accountEntry);
             }
@@ -142,10 +133,9 @@ export async function setAccount(address: string, account: WrappedEVMAccount): P
                 // }
             }
         }
-        else {
+        else
             // eslint-disable-next-line security/detect-object-injection
             accounts[address] = account;
-        }
     }
     catch (e) {
     }
@@ -154,12 +144,10 @@ export const setCachedNetworkAccount = (account: NetworkAccount): void => {
     cachedNetworkAccount = account;
 };
 export async function debugGetAllAccounts(): Promise<WrappedEVMAccount[]> {
-    if (ShardeumFlags.UseDBForAccounts === true) {
+    if (ShardeumFlags.UseDBForAccounts === true)
         return (await storage.debugSelectAllAccountsEntry()) as unknown as WrappedEVMAccount[];
-    }
-    else {
+    else
         return Object.values(accounts);
-    }
     //return null
 }
 export async function clearAccounts(): Promise<void> {
@@ -169,48 +157,40 @@ export async function clearAccounts(): Promise<void> {
         await lazyInit();
         await storage.deleteAccountsEntry();
     }
-    else {
+    else
         accounts = {};
-    }
 }
 export async function queryAccountsEntryByRanges(accountStart, accountEnd, maxRecords): Promise<WrappedEVMAccount[]> {
     if (ShardeumFlags.UseDBForAccounts === true) {
         const processedResults = [];
         const results = await storage.queryAccountsEntryByRanges(accountStart, accountEnd, maxRecords);
         for (const result of results) {
-            if (typeof result.data === 'string') {
+            if (typeof result.data === 'string')
                 result.data = Utils.safeJsonParse(result.data);
-            }
             processedResults.push(result.data);
         }
         return processedResults;
     }
-    else {
+    else
         throw Error('not supported here');
-    }
 }
 export async function queryAccountsEntryByRanges2(accountStart, accountEnd, tsStart, tsEnd, maxRecords, offset, accountOffset): Promise<WrappedEVMAccount[]> {
     if (ShardeumFlags.UseDBForAccounts === true) {
         const processedResults = [];
         let results;
-        if (accountOffset != null && accountOffset.length > 0) {
+        if (accountOffset != null && accountOffset.length > 0)
             results = await storage.queryAccountsEntryByRanges3(accountStart, accountEnd, tsStart, tsEnd, maxRecords, accountOffset);
-        }
-        else {
+        else
             results = await storage.queryAccountsEntryByRanges2(accountStart, accountEnd, tsStart, tsEnd, maxRecords, offset);
-        }
         for (const result of results) {
-            if (typeof result.data === 'string') {
+            if (typeof result.data === 'string')
                 result.data = Utils.safeJsonParse(result.data);
-            }
             processedResults.push(result.data);
         }
         return processedResults;
     }
-    else {
+    else
         throw Error('not supported here');
-        //return accounts
-    }
 }
 export async function checkDatabaseHealth(): Promise<boolean> {
     return storage.checkDatabaseHealth();

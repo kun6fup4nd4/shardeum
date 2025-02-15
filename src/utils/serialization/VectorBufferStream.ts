@@ -21,9 +21,8 @@ export class VectorBufferStream {
         return this.position >= this.buffer.length;
     }
     private ensureCapacity(size: number): void {
-        if (this.position + size <= this.buffer.length) {
+        if (this.position + size <= this.buffer.length)
             return;
-        }
         const newSize = Math.max(this.buffer.length * 2, this.position + size);
         const newBuffer = Buffer.allocUnsafe(newSize);
         this.buffer.copy(newBuffer);

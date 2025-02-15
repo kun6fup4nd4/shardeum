@@ -131,11 +131,10 @@ export const sync = (shardus: Shardus, evmCommon: any) => async (): Promise<void
             };
             shardus.setGlobal(networkAccount, '', value, when, networkAccount); // need to set addressHash = '' because it's not created yet.
         }
-        else {
+        else
             while (!(await shardus.getLocalOrRemoteAccount(networkAccount))) {
                 await sleep(1000);
             }
-        }
     }
 };
 /**
@@ -174,9 +173,8 @@ async function manuallyCreateAccount(ethAccountID: string, balance = defaultBala
     const address = Address.fromString(ethAccountID);
     const account = await debugTXState.getAccount(address);
     let cycleStart = 0;
-    if (latestCycles != null && latestCycles.length > 0) {
+    if (latestCycles != null && latestCycles.length > 0)
         cycleStart = latestCycles[0].start * 1000;
-    }
     const wrappedEVMAccount = {
         timestamp: cycleStart,
         account,
@@ -193,9 +191,8 @@ const createDevAccount = (accountId: string, latestCycles: any): {
     cycle: any;
 } => {
     let cycleStart = 0;
-    if (latestCycles != null && latestCycles.length > 0) {
+    if (latestCycles != null && latestCycles.length > 0)
         cycleStart = latestCycles[0].start * 1000;
-    }
     const account: DevAccount = {
         id: accountId,
         accountType: AccountType.DevAccount,
@@ -226,9 +223,8 @@ function getDebugTXState(evmCommon: any): ShardeumState {
         }, txId, undefined, undefined);
         shardeumState.setTransactionState(transactionState);
     }
-    else {
+    else
         shardeumState.resetState();
-    }
     return shardeumState;
 }
 async function createAccount(addressStr: string, stateManager: any, balance: bigint = defaultBalance): Promise<WrappedEVMAccount> {

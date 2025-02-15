@@ -12,9 +12,8 @@ export type jsonState = {
 export const accounts: Map<string, WrappedEVMAccount> = new Map();
 export function addCreatedAccount(address: string, account: WrappedEVMAccount): void {
     let accountId;
-    if (isValidAddress(address)) {
+    if (isValidAddress(address))
         accountId = toShardusAddress(address, AccountType.Account);
-    }
     if (accountId)
         accounts.set(accountId, account);
 }
@@ -23,11 +22,10 @@ export function loadStatesFromJson(fileName: string): boolean {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     const data = Utils.safeJsonParse(fs.readFileSync(fileName, 'utf8'));
     const estimateOnly = !!data.txData;
-    if (!data.beforeStateAccounts) {
+    if (!data.beforeStateAccounts)
         if (!estimateOnly) {
             throw new Error('beforeStateAccounts not found in file');
         }
-    }
     const beforeStates: jsonState[] = estimateOnly ? [] : data.beforeStateAccounts;
     // LOAD STATES (EOA | CA | CB)
     fileName = `${fileName.slice(0, -5)}_states.json`;
@@ -51,9 +49,8 @@ export function loadStatesFromJson(fileName: string): boolean {
             if (!state.data?.account?.[property])
                 return;
             // eslint-disable-next-line security/detect-object-injection
-            if (state.data.account[property]['type'] === 'Buffer') {
+            if (state.data.account[property]['type'] === 'Buffer')
                 return;
-            }
             // eslint-disable-next-line security/detect-object-injection
             if (typeof state.data.account[property] === 'object') {
                 const arr: number[] = Object.keys(state.data.account.codeHash).map(
@@ -68,18 +65,16 @@ export function loadStatesFromJson(fileName: string): boolean {
     return estimateOnly;
 }
 export function getAccount(address: string): WrappedEVMAccount {
-    if (isValidAddress(address)) {
+    if (isValidAddress(address))
         address = toShardusAddress(address, AccountType.Account);
-    }
     return accounts.get(address);
 }
 export function hasAccount(address: string): {
     found: boolean;
     shardusKey: string;
 } {
-    if (isValidAddress(address)) {
+    if (isValidAddress(address))
         address = toShardusAddress(address, AccountType.Account);
-    }
     return { found: accounts.has(address), shardusKey: address };
 }
 export function getKey(address: string, secondaryAddress: string, type: AccountType): {

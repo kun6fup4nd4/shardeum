@@ -336,24 +336,21 @@ export function getOpcodesForHF(common: Common, customOpcodes?: CustomOpcode[]):
     const handlersCopy = new Map(handlers);
     const dynamicGasHandlersCopy = new Map(dynamicGasHandlers);
     for (let fork = 0; fork < hardforkOpcodes.length; fork++) {
-        if (common.gteHardfork(hardforkOpcodes[fork].hardfork)) {
+        if (common.gteHardfork(hardforkOpcodes[fork].hardfork))
             opcodeBuilder = { ...opcodeBuilder, ...hardforkOpcodes[fork].opcodes };
-        }
     }
     for (const eipOps of eipOpcodes) {
-        if (common.isActivatedEIP(eipOps.eip)) {
+        if (common.isActivatedEIP(eipOps.eip))
             opcodeBuilder = { ...opcodeBuilder, ...eipOps.opcodes };
-        }
     }
     for (const key in opcodeBuilder) {
         const baseFee = Number(common.param('gasPrices', opcodeBuilder[key].name.toLowerCase()));
         // explicitly verify that we have defined a base fee
-        if (baseFee === undefined) {
+        if (baseFee === undefined)
             throw new Error(`base fee not defined for: ${opcodeBuilder[key].name}`);
-        }
         opcodeBuilder[key].fee = baseFee;
     }
-    if (customOpcodes) {
+    if (customOpcodes)
         for (const _code of customOpcodes) {
             const code = <any>_code;
             if (code.logicFunction === undefined) {
@@ -379,7 +376,6 @@ export function getOpcodesForHF(common: Common, customOpcodes?: CustomOpcode[]):
             // logicFunction is never undefined
             handlersCopy.set(code.opcode, code.logicFunction);
         }
-    }
     return {
         dynamicGasHandlers: dynamicGasHandlersCopy,
         handlers: handlersCopy,

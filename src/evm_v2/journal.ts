@@ -92,17 +92,15 @@ export class Journal {
         for (let i = this.journalDiff.length - 1; i >= 0; i--) {
             finalI = i;
             const [height, diff] = this.journalDiff[i];
-            if (height < this.journalHeight) {
+            if (height < this.journalHeight)
                 break;
-            }
             const addressSet = diff[0];
             const slotsMap = diff[1];
             const touchedSet = diff[2];
             for (const address of addressSet) {
                 // Sanity check, journal should have the item
-                if (this.journal.has(address)) {
+                if (this.journal.has(address))
                     this.journal.delete(address);
-                }
             }
             for (const [address, delSlots] of slotsMap) {
                 // Sanity check, the address SHOULD be in the journal
@@ -115,11 +113,10 @@ export class Journal {
             }
             for (const address of touchedSet) {
                 // Delete the address from the journal
-                if (address !== RIPEMD160_ADDRESS_STRING) {
+                if (address !== RIPEMD160_ADDRESS_STRING)
                     // If RIPEMD160 is touched, keep it touched.
                     // Default behavior for others.
                     this.touched.delete(address);
-                }
             }
         }
         // the final diffs are reverted and we can dispose those
@@ -140,7 +137,7 @@ export class Journal {
      * Also cleanups any other internal fields
      */
     async cleanup(): Promise<void> {
-        if (this.common.gteHardfork(Hardfork.SpuriousDragon) === true) {
+        if (this.common.gteHardfork(Hardfork.SpuriousDragon) === true)
             for (const addressHex of this.touched) {
                 const address = new Address(toBytes('0x' + addressHex));
                 const account = await this.stateManager.getAccount(address);
@@ -151,20 +148,17 @@ export class Journal {
                     }
                 }
             }
-        }
         this.cleanJournal();
         delete this.accessList;
     }
     addAlwaysWarmAddress(addressStr: string, addToAccessList = false): void {
         const address = stripHexPrefix(addressStr);
-        if (!this.alwaysWarmJournal.has(address)) {
+        if (!this.alwaysWarmJournal.has(address))
             this.alwaysWarmJournal.set(address, new Set());
-        }
-        if (addToAccessList && this.accessList !== undefined) {
+        if (addToAccessList && this.accessList !== undefined)
             if (!this.accessList.has(address)) {
                 this.accessList.set(address, new Set());
             }
-        }
     }
     addAlwaysWarmSlot(addressStr: string, slotStr: string, addToAccessList = false): void {
         const address = stripHexPrefix(addressStr);
@@ -172,9 +166,8 @@ export class Journal {
         const slotsSet = this.alwaysWarmJournal.get(address)!;
         const slot = stripHexPrefix(slotStr);
         slotsSet.add(slot);
-        if (addToAccessList && this.accessList !== undefined) {
+        if (addToAccessList && this.accessList !== undefined)
             this.accessList.get(address)!.add(slot);
-        }
     }
     /**
      * Returns true if the address is warm in the current context
@@ -196,11 +189,10 @@ export class Journal {
             const diffArr = this.journalDiff[this.journalDiff.length - 1][1];
             diffArr[0].add(address);
         }
-        if (this.accessList !== undefined) {
+        if (this.accessList !== undefined)
             if (!this.accessList.has(address)) {
                 this.accessList.set(address, new Set());
             }
-        }
     }
     /**
      * Returns true if the slot of the address is warm
@@ -211,17 +203,14 @@ export class Journal {
         const addressHex = bytesToUnprefixedHex(address);
         const slots = this.journal.get(addressHex);
         if (slots === undefined) {
-            if (this.alwaysWarmJournal.has(addressHex)) {
+            if (this.alwaysWarmJournal.has(addressHex))
                 return this.alwaysWarmJournal.get(addressHex)!.has(bytesToUnprefixedHex(slot));
-            }
             return false;
         }
-        if (slots.has(bytesToUnprefixedHex(slot))) {
+        if (slots.has(bytesToUnprefixedHex(slot)))
             return true;
-        }
-        else if (this.alwaysWarmJournal.has(addressHex)) {
+        else if (this.alwaysWarmJournal.has(addressHex))
             return this.alwaysWarmJournal.get(addressHex)!.has(bytesToUnprefixedHex(slot));
-        }
         return false;
     }
     /**
@@ -241,9 +230,8 @@ export class Journal {
             slots!.add(slotStr);
             const diff = this.journalDiff[this.journalDiff.length - 1][1];
             const addressSlotMap = diff[1];
-            if (!addressSlotMap.has(addressHex)) {
+            if (!addressSlotMap.has(addressHex))
                 addressSlotMap.set(addressHex, new Set());
-            }
             const slotsSet = addressSlotMap.get(addressHex)!;
             slotsSet.add(slotStr);
         }

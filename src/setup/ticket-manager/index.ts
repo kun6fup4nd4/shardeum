@@ -34,18 +34,16 @@ export function scheduleUpdateTicketMap(): void {
 }
 function getArchiverToRetrieveTicketType(): Archiver {
     const archiverList = getFinalArchiverList();
-    if (archiverList.length > 0) {
+    if (archiverList.length > 0)
         return getRandom(archiverList, 1)[0];
-    }
     return undefined;
 }
 async function getTicketTypesFromArchiver(archiver: Archiver): Promise<TicketType[]> {
     try {
         const url = `http://${archiver.ip}:${archiver.port}/tickets`;
         const res = await axios.get(url);
-        if (res.status >= 200 && res.status < 300) {
+        if (res.status >= 200 && res.status < 300)
             return res.data;
-        }
     }
     catch (error) {
         console.error(`[tickets][getTicketTypesFromArchiver] Error getting ticket list`, error);
@@ -64,22 +62,18 @@ export async function updateTicketMap(): Promise<void> {
         ticketTypes.forEach((ticketType: TicketType, i: number) => {
             const { sign, ...ticketTypeWithoutSign } = ticketType;
             const isValidSig = verifyMultiSigs(ticketTypeWithoutSign, sign, devPublicKeys, requiredSigs, DevSecurityLevel.High);
-            if (isValidSig) {
+            if (isValidSig)
                 ticketTypeMap.set(ticketType.type, ticketType);
-            }
-            else {
+            else
                 console.warn(`[tickets][updateTicketMap] Invalid signature for ticket ${JSON.stringify(ticketType)}`);
-            }
         });
     }
-    else {
+    else
         console.warn(`[tickets][updateTicketMap] No archivers found`);
-    }
 }
 export function getTicketsByType(type: string): Ticket[] {
-    if (ticketTypeMap.has(type)) {
+    if (ticketTypeMap.has(type))
         return ticketTypeMap.get(type).data;
-    }
     return [];
 }
 export function doesTransactionSenderHaveTicketType({ ticketType, senderAddress }: {
@@ -114,20 +108,16 @@ export function doesTransactionSenderHaveTicketType({ ticketType, senderAddress 
                 return false;
             });
             // If no matching Silver Ticket is found for the nominee, return a failure response
-            if (!silverTicketForNominee) {
+            if (!silverTicketForNominee)
                 result.reason = 'Nominee does not have a Silver Ticket';
-            }
-            else {
+            else
                 result.success = true;
-            }
         }
-        else {
+        else
             // If no Silver Tickets are found at all, return a failure response
             result.reason = 'No Silver Tickets found';
-        }
     }
-    else {
+    else
         result.reason = 'Silver Tickets feature is not enabled';
-    }
     return result;
 }

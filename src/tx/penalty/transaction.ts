@@ -37,23 +37,20 @@ export async function injectPenaltyTX(shardus: Shardus, eventData: ShardusTypes.
         internalTXType: InternalTXType.Penalty,
     };
     const wrapeedNodeAccount: ShardusTypes.WrappedDataFromQueue = await shardus.getLocalOrRemoteAccount(unsignedTx.reportedNodePublickKey);
-    if (!wrapeedNodeAccount) {
+    if (!wrapeedNodeAccount)
         return {
             success: false,
             reason: 'Penalty Node Account not found',
             status: 404,
         };
-    }
-    if (wrapeedNodeAccount && isNodeAccount2(wrapeedNodeAccount.data)) {
+    if (wrapeedNodeAccount && isNodeAccount2(wrapeedNodeAccount.data))
         unsignedTx.operatorEVMAddress = wrapeedNodeAccount.data.nominator;
-    }
-    else {
+    else
         return {
             success: false,
             reason: 'Operator address could not be found for penalty node',
             status: 404,
         };
-    }
     // to make sure that differnt nodes all submit an equivalent unsignedTx that is counted as the same unsignedTx,
     // we need to make sure that we have a determinstic timestamp
     const cycleEndTime = eventData.time;
@@ -70,9 +67,8 @@ export async function injectPenaltyTX(shardus: Shardus, eventData: ShardusTypes.
     const closestNodes = shardus.getClosestNodes(eventData.publicKey, ShardeumFlags.numberOfNodesToInjectPenaltyTx);
     const ourId = shardus.getNodeId();
     const isLuckyNode = closestNodes.some((nodeId) => nodeId === ourId);
-    if (!isLuckyNode) {
+    if (!isLuckyNode)
         return;
-    }
     const waitTime = futureTimestamp - shardeumGetTime();
     // since we have to pick a future timestamp, we need to wait until it is time to submit the signedTx
     await sleep(waitTime);
@@ -82,9 +78,8 @@ export async function injectPenaltyTX(shardus: Shardus, eventData: ShardusTypes.
     return result;
 }
 function recordPenaltyTX(txId: string, tx: PenaltyTX): void {
-    if (penaltyTxsMap.has(txId) === false) {
+    if (penaltyTxsMap.has(txId) === false)
         penaltyTxsMap.set(txId, tx);
-    }
 }
 /**
  * Compares the event timestamp of the penalty tx with the timestamp of the last saved penalty tx
@@ -132,30 +127,24 @@ export function validatePenaltyTX(txId: string, tx: PenaltyTX, isApply = false):
     reason: string;
 } {
     const errors = verifyPayload(AJVSchemaEnum.PenaltyTx, tx);
-    if (errors != null) {
+    if (errors != null)
         return { isValid: false, reason: 'Invalid penalty tx' };
-    }
     // this check should happen only for exe nodes applying the penalty tx
     if (isApply) {
         // check if we have this penalty tx stored in the Map
         const preRecordedfPenaltyTX = penaltyTxsMap.get(txId);
-        if (preRecordedfPenaltyTX == null) {
+        if (preRecordedfPenaltyTX == null)
             return { isValid: false, reason: 'Penalty TX not found in penaltyTxsMap of exe node' };
-        }
     }
-    if (tx.violationType === ViolationType.LeftNetworkEarly && AccountsStorage.cachedNetworkAccount.current.slashing.enableLeftNetworkEarlySlashing === false) {
+    if (tx.violationType === ViolationType.LeftNetworkEarly && AccountsStorage.cachedNetworkAccount.current.slashing.enableLeftNetworkEarlySlashing === false)
         return { isValid: false, reason: 'LeftNetworkEarly slashing is disabled' };
-    }
-    if (tx.violationType === ViolationType.SyncingTooLong && AccountsStorage.cachedNetworkAccount.current.slashing.enableSyncTimeoutSlashing === false) {
+    if (tx.violationType === ViolationType.SyncingTooLong && AccountsStorage.cachedNetworkAccount.current.slashing.enableSyncTimeoutSlashing === false)
         return { isValid: false, reason: 'Sync timeout slashing is disabled' };
-    }
-    if (tx.violationType === ViolationType.NodeRefuted && AccountsStorage.cachedNetworkAccount.current.slashing.enableNodeRefutedSlashing === false) {
+    if (tx.violationType === ViolationType.NodeRefuted && AccountsStorage.cachedNetworkAccount.current.slashing.enableNodeRefutedSlashing === false)
         return { isValid: false, reason: 'Refuted node slashing is disabled' };
-    }
     try {
-        if (!crypto.verifyObj(tx)) {
+        if (!crypto.verifyObj(tx))
             return { isValid: false, reason: 'Invalid signature for Penalty tx' };
-        }
     }
     catch (e) {
         return { isValid: false, reason: 'Invalid signature for Penalty tx' };
@@ -175,9 +164,8 @@ export async function applyPenaltyTX(shardus, tx: PenaltyTX, wrappedStates: Wrap
         nodeAccount = wrappedStates[nodeShardusAddress].data as NodeAccount2;
     const operatorShardusAddress = toShardusAddress(tx.operatorEVMAddress, AccountType.Account);
     let operatorAccount: WrappedEVMAccount;
-    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(wrappedStates[operatorShardusAddress].data)) {
+    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(wrappedStates[operatorShardusAddress].data))
         operatorAccount = wrappedStates[operatorShardusAddress].data as WrappedEVMAccount;
-    }
     const { isProcessed, eventTime } = isProcessedPenaltyTx(tx, nodeAccount);
     if (isProcessed) {
         shardus.applyResponseSetFailed(applyResponse, `applyPenaltyTX failed isProcessedPenaltyTx reportedNode: ${tx.reportedNodePublickKey}`);
@@ -214,22 +202,19 @@ export async function applyPenaltyTX(shardus, tx: PenaltyTX, wrappedStates: Wrap
     //TODO should we check for existing funds?
     if (ShardeumFlags.useAccountWrites) {
         let wrappedChangedNodeAccount: ShardusTypes.WrappedData;
-        if (WrappedEVMAccountFunctions.isInternalAccount(nodeAccount)) {
+        if (WrappedEVMAccountFunctions.isInternalAccount(nodeAccount))
             wrappedChangedNodeAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(nodeAccount);
-        }
         shardus.applyResponseAddChangedAccount(applyResponse, nodeShardusAddress, wrappedChangedNodeAccount, txId, txTimestamp);
         let wrappedChangedOperatorAccount: ShardusTypes.WrappedData;
         /* eslint-disable security/detect-object-injection */
-        if (WrappedEVMAccountFunctions.isWrappedEVMAccount(operatorAccount)) {
+        if (WrappedEVMAccountFunctions.isWrappedEVMAccount(operatorAccount))
             wrappedChangedOperatorAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(operatorAccount);
-        }
         /* eslint-enable security/detect-object-injection */
         shardus.applyResponseAddChangedAccount(applyResponse, operatorShardusAddress, wrappedChangedOperatorAccount, txId, txTimestamp);
     }
-    if (ShardeumFlags.supportInternalTxReceipt) {
+    if (ShardeumFlags.supportInternalTxReceipt)
         createInternalTxReceipt(shardus, applyResponse, tx, tx.reportedNodePublickKey, // nominee
         tx.operatorEVMAddress, // nominator
         txTimestamp, txId, bigIntToHex(BigInt(0)), // 0 amountSpent,
         undefined, penaltyAmount);
-    }
 }

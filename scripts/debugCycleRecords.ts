@@ -47,9 +47,8 @@ rl.on('close', () => {
                     break;
                 }
             }
-            if (!found) {
+            if (!found)
                 cycleMap.set(cycleRecord, [port]);
-            }
         });
         return cycleMap;
     });
@@ -74,7 +73,7 @@ rl.on('close', () => {
     function compareValues(val1, val2, path) {
         for (const key in val1) {
             const newPath = [...path, key];
-            if (val2.hasOwnProperty(key)) {
+            if (val2.hasOwnProperty(key))
                 if (typeof val1[key] === 'object' &&
                     val1[key] !== null &&
                     typeof val2[key] === 'object' &&
@@ -83,7 +82,6 @@ rl.on('close', () => {
                 }
                 else if (val1[key] !== val2[key]) {
                 }
-            }
             else {
             }
         }
@@ -131,22 +129,16 @@ rl.on('close', () => {
     }
     if (func === 'help') {
     }
-    else if (func === 'pc') {
+    else if (func === 'pc')
         printCycle(arg1);
-    }
-    else if (func === 'pcs') {
+    else if (func === 'pcs')
         printCycles(arg1, arg2);
-    }
-    else if (func === 'pvc') {
+    else if (func === 'pvc')
         printVariantCycles(arg1, arg2);
-    }
-    else if (func === 'pvpc') {
+    else if (func === 'pvpc')
         printVariancePerCycle(arg1, arg2);
-    }
-    else if (func === 'pvpvc') {
+    else if (func === 'pvpvc')
         printVariancePerVariantCycles(arg1, arg2);
-    }
-    else if (func === 'pvcd') {
+    else if (func === 'pvcd')
         printVariantCyclesDifferences(arg1, arg2);
-    }
 });

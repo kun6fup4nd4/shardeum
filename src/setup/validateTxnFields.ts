@@ -29,13 +29,12 @@ export const validateTxnFields =
     const { tx } = timestampedTx;
     const txnTimestamp: number = getInjectedOrGeneratedTimestamp(timestampedTx);
     const appData = fixBigIntLiteralsToBigInt(originalAppData);
-    if (!txnTimestamp) {
+    if (!txnTimestamp)
         return {
             success: false,
             reason: 'Invalid transaction timestamp',
             txnTimestamp,
         };
-    }
     const txId = generateTxId(tx);
     if (isSetCertTimeTx(tx)) {
         const setCertTimeTx = tx as SetCertTime;
@@ -51,15 +50,14 @@ export const validateTxnFields =
         let success = false;
         let reason = '';
         // validate internal TX
-        if (isInternalTXGlobal(internalTX) === true) {
+        if (isInternalTXGlobal(internalTX) === true)
             return {
                 success: true,
                 reason: '',
                 txnTimestamp,
             };
-        }
         else if (tx.internalTXType === InternalTXType.ChangeConfig ||
-            tx.internalTXType === InternalTXType.ChangeNetworkParam) {
+            tx.internalTXType === InternalTXType.ChangeNetworkParam)
             try {
                 // DEFINATION:
                 // Valid signature is a cryptocraphically valid signature
@@ -91,7 +89,6 @@ export const validateTxnFields =
                 success = false;
                 reason = 'Signature verification thrown exception';
             }
-        }
         else if (tx.internalTXType === InternalTXType.InitRewardTimes) {
             const result = InitRewardTimesTx.validateFields(tx as InitRewardTimes, shardus);
             success = result.success;
@@ -109,21 +106,19 @@ export const validateTxnFields =
         }
         else if (tx.internalTXType === InternalTXType.InitNetwork) {
             const latestCycles = shardus.getLatestCycles();
-            if (latestCycles == null || latestCycles.length === 0) {
+            if (latestCycles == null || latestCycles.length === 0)
                 return {
                     success: false,
                     reason,
                     txnTimestamp: txnTimestamp,
                 };
-            }
             const cycle = latestCycles[0];
-            if (cycle.counter > 1) {
+            if (cycle.counter > 1)
                 return {
                     success: false,
                     reason,
                     txnTimestamp: txnTimestamp,
                 };
-            }
             success = crypto.verifyObj(internalTX as InternalTxWithSingleSign);
             return {
                 success,
@@ -134,27 +129,25 @@ export const validateTxnFields =
         else if (tx.internalTXType === InternalTXType.TransferFromSecureAccount) {
             // Perform thorough verification
             const verifyResult = validateTransferFromSecureAccount(tx, shardus);
-            if (!verifyResult.success) {
+            if (!verifyResult.success)
                 return {
                     success,
                     reason: verifyResult.reason,
                     txnTimestamp,
                 };
-            }
             return {
                 success: true,
                 reason: 'Valid TransferFromSecureAccount transaction',
                 txnTimestamp,
             };
         }
-        else {
+        else
             try {
                 success = crypto.verifyObj(internalTX as InternalTxWithSingleSign);
             }
             catch (e) {
                 reason = 'Invalid signature for internal tx';
             }
-        }
         return {
             success,
             reason,
@@ -162,13 +155,12 @@ export const validateTxnFields =
         };
     }
     if (isDebugTx(tx)) {
-        if (!ShardeumFlags.debugTxEnabled) {
+        if (!ShardeumFlags.debugTxEnabled)
             return {
                 success: false,
                 reason: 'Debug TX is not allowed',
                 txnTimestamp,
             };
-        }
         return {
             success: true,
             reason: 'always valid',
@@ -185,40 +177,35 @@ export const validateTxnFields =
         //const txId = '0x' + crypto.hashObj(timestampedTx.tx)
         const txHash = bytesToHex(transaction.hash());
         //limit debug app data size.  (a queue would be nicer, but this is very simple)
-        if (debugAppdata.size > 1000) {
+        if (debugAppdata.size > 1000)
             debugAppdata.clear();
-        }
         debugAppdata.set(txHash, appData);
-        if (!gasValid) {
+        if (!gasValid)
             return {
                 success: false,
                 reason: 'Not enough gas to execute transaction',
                 txnTimestamp,
             };
-        }
-        else if (!isSigned) {
+        else if (!isSigned)
             return {
                 success: false,
                 reason: 'Transaction is not signed',
                 txnTimestamp,
             };
-        }
-        else if (!isSignatureValid) {
+        else if (!isSignatureValid)
             return {
                 success: false,
                 reason: 'Transaction signature is invalid',
                 txnTimestamp,
             };
-        }
         else {
             success = true;
             reason = '';
         }
         // Chain ID validation
         let chainId = BigInt(-1);
-        if (transaction && transaction.common.chainId) {
+        if (transaction && transaction.common.chainId)
             chainId = transaction.common.chainId();
-        }
         if (chainId !== BigInt(ShardeumFlags.ChainID)) {
             success = false;
             reason = `Transaction chain ID is invalid.`;
@@ -244,31 +231,27 @@ export const validateTxnFields =
             const txNonce = parseInt(transaction.nonce.toString(10));
             const perfectCount = appData.nonce + appData.queueCount;
             const exactCount = appData.nonce;
-            if (ShardeumFlags.looseNonceCheck) {
+            if (ShardeumFlags.looseNonceCheck)
                 if (isWithinRange(txNonce, perfectCount, ShardeumFlags.nonceCheckRange)) {
                 }
                 else {
                     success = false;
                     reason = `Transaction nonce is not within +/- ${ShardeumFlags.nonceCheckRange} of perfectCount ${perfectCount}  txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
                 }
+            else if (txNonce != perfectCount) {
+                success = false;
+                reason = `Transaction nonce != ${perfectCount}  txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
             }
             else {
-                if (txNonce != perfectCount) {
-                    success = false;
-                    reason = `Transaction nonce != ${perfectCount}  txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
-                }
-                else {
-                }
             }
             // ExactNonce check
-            if (ShardeumFlags.exactNonceCheck) {
+            if (ShardeumFlags.exactNonceCheck)
                 if (txNonce != exactCount) {
                     success = false;
                     reason = `Transaction nonce != ${exactCount} (ExactNonce) txNonce:${txNonce} accountNonce:${appData.nonce} queueCount:${appData.queueCount}`;
                 }
                 else {
                 }
-            }
         }
         const isStakeRelatedTx: boolean = isStakingEVMTx(transaction);
         if (shardusConfig.features.dappFeature1enabled &&
@@ -280,13 +263,12 @@ export const validateTxnFields =
                 (transaction.data == null ||
                     transaction.data.length === 0 ||
                     bytesToHex(transaction.data) === emptyCodeHash);
-            if (!isCoinTransfer) {
+            if (!isCoinTransfer)
                 return {
                     success: false,
                     reason: 'Invalid transaction fields',
                     txnTimestamp,
                 };
-            }
         }
         if (appData && appData.internalTx && appData.internalTXType === InternalTXType.Stake) {
             appData.internalTx = getStakeTxBlobFromEVMTx(transaction);
@@ -334,17 +316,16 @@ export const validateTxnFields =
             if (appData.nomineeAccount) {
                 const nodeAccount = appData.nomineeAccount as NodeAccount2;
                 if (nodeAccount.nominator &&
-                    nodeAccount.nominator.toLowerCase() !== stakeCoinsTx.nominator.toLowerCase()) {
+                    nodeAccount.nominator.toLowerCase() !== stakeCoinsTx.nominator.toLowerCase())
                     return {
                         success: false,
                         reason: `This node is already staked by another account!`,
                         txnTimestamp,
                     };
-                }
             }
             if (appData.nominatorAccount) {
                 const wrappedEVMAccount = appData.nominatorAccount as WrappedEVMAccount;
-                if (wrappedEVMAccount.operatorAccountInfo) {
+                if (wrappedEVMAccount.operatorAccountInfo)
                     if (wrappedEVMAccount.operatorAccountInfo.nominee) {
                         if (wrappedEVMAccount.operatorAccountInfo.nominee.toLowerCase() !==
                             stakeCoinsTx.nominee.toLowerCase())
@@ -354,7 +335,6 @@ export const validateTxnFields =
                                 txnTimestamp,
                             };
                     }
-                }
             }
         }
         if (appData && appData.internalTx && appData.internalTXType === InternalTXType.Unstake) {

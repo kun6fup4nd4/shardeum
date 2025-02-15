@@ -7,9 +7,8 @@ export class Bloom {
      * Represents a Bloom filter.
      */
     constructor(bitvector?: Uint8Array) {
-        if (!bitvector) {
+        if (!bitvector)
             this.bitvector = zeros(BYTE_SIZE);
-        }
         else {
             if (bitvector.length !== BYTE_SIZE)
                 throw new Error('bitvectors must be 2048 bits long');

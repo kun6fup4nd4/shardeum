@@ -82,9 +82,8 @@ async function writeDBToTarget(dbFile, targetDB, batchSize) {
             await run(targetDB, 'COMMIT');
             if (rowCount % 100000 == 0) {
             }
-            if (accounts.length < batchSize) {
+            if (accounts.length < batchSize)
                 break;
-            }
         }
     }
     catch (error) {
@@ -119,18 +118,16 @@ async function exportToJSON(targetDbPath, targetJsonPath, batchSize) {
             }
             if (rowCount % 100000 == 0) {
             }
-            if (accounts.length < batchSize) {
+            if (accounts.length < batchSize)
                 break;
-            }
         }
     }
     catch (error) {
     }
     finally {
         writableStream.end();
-        if (targetDB) {
+        if (targetDB)
             await targetDB.close();
-        }
     }
     return rowCount;
 }
@@ -151,9 +148,8 @@ async function createTargetDB(targetDBPath: string) {
 }
 function getDB(dbPath) {
     return new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-        if (err) {
+        if (err)
             console.error('Error opening database: ', err.message);
-        }
     });
 }
 function runQuery(db, query, params = []) {

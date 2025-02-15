@@ -22,9 +22,8 @@ export interface NetworkAccount extends BaseAccount {
     mode: ShardusTypes.ServerMode;
 }
 export function serializeNetworkAccount(stream: VectorBufferStream, obj: NetworkAccount, root = false): void {
-    if (root) {
+    if (root)
         stream.writeUInt16(TypeIdentifierEnum.cNetworkAccount);
-    }
     stream.writeUInt8(cNetworkAccountVersion);
     serializeBaseAccount(stream, obj, false);
     stream.writeString(obj.id);
@@ -50,9 +49,8 @@ export function deserializeNetworkAccount(stream: VectorBufferStream): NetworkAc
         //  return Utils.safeJsonParse(Beta1_11_2NetworkAccountJson) as NetworkAccount
     }
     const version = stream.readUInt8();
-    if (version > cNetworkAccountVersion) {
+    if (version > cNetworkAccountVersion)
         throw new Error('NetworkAccount version mismatch');
-    }
     const baseAccount = deserializeBaseAccount(stream);
     const id = stream.readString();
     const current = Utils.safeJsonParse(stream.readString()) as NetworkParameters;

@@ -11,10 +11,9 @@ crypto.setCustomStringifier(Utils.safeStringify, 'shardus_safeStringify');
 export { crypto };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function verify(obj: any, expectedPk?: string): boolean {
-    if (expectedPk) {
+    if (expectedPk)
         if (obj.sign.owner !== expectedPk)
             return false;
-    }
     return crypto.verifyObj(obj);
 }
 export function isInternalTXGlobal(internalTx: InternalTx): boolean {
@@ -49,14 +48,13 @@ export function getTransactionObj(tx): Transaction[TransactionType.Legacy] | Tra
     catch (e) {
         // if (ShardeumFlags.VerboseLogs) console.log('Unable to get legacy transaction obj', e)
     }
-    if (!transactionObj) {
+    if (!transactionObj)
         try {
             transactionObj =
                 TransactionFactory.fromSerializedData<TransactionType.AccessListEIP2930>(serializedInput);
         }
         catch (e) {
         }
-    }
     if (transactionObj) {
         Object.freeze(transactionObj);
         return transactionObj;
@@ -87,13 +85,11 @@ export function getInjectedOrGeneratedTimestamp(timestampedTx): number {
  * @returns
  */
 export function hashSignedObj(obj): string {
-    if (ShardeumFlags.txHashingFix === false) {
+    if (ShardeumFlags.txHashingFix === false)
         //if the feature is not on ignore the smart logic below and just hash the object
         return crypto.hashObj(obj);
-    }
-    if (!obj.sign) {
+    if (!obj.sign)
         return crypto.hashObj(obj);
-    }
     return crypto.hashObj(obj, true);
 }
 /**
@@ -107,9 +103,8 @@ export function hashSignedObj(obj): string {
 export function verifyMultiSigs(rawPayload: object, sigs: Sign[], allowedPubkeys: {
     [pubkey: string]: DevSecurityLevel;
 }, minSigRequired: number, requiredSecurityLevel: DevSecurityLevel): boolean {
-    if (!rawPayload || !sigs || !allowedPubkeys || !Array.isArray(sigs)) {
+    if (!rawPayload || !sigs || !allowedPubkeys || !Array.isArray(sigs))
         return false;
-    }
     if (sigs.length < minSigRequired)
         return false;
     // no reason to allow more signatures than allowedPubkeys exist

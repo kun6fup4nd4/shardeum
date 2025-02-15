@@ -18,9 +18,8 @@ import type { PrecompileInput } from './types.js';
 function ADD64AA(v: Uint32Array, a: number, b: number): void {
     const o0 = v[a] + v[b];
     let o1 = v[a + 1] + v[b + 1];
-    if (o0 >= 0x100000000) {
+    if (o0 >= 0x100000000)
         o1++;
-    }
     v[a] = o0;
     v[a + 1] = o1;
 }
@@ -29,13 +28,11 @@ function ADD64AA(v: Uint32Array, a: number, b: number): void {
 // b0 is the low 32 bits of b, b1 represents the high 32 bits
 function ADD64AC(v: Uint32Array, a: number, b0: number, b1: number): void {
     let o0 = v[a] + b0;
-    if (b0 < 0) {
+    if (b0 < 0)
         o0 += 0x100000000;
-    }
     let o1 = v[a + 1] + b1;
-    if (o0 >= 0x100000000) {
+    if (o0 >= 0x100000000)
         o1++;
-    }
     v[a] = o0;
     v[a + 1] = o1;
 }
@@ -125,9 +122,8 @@ export function F(h: Uint32Array, m: Uint32Array, t: Uint32Array, f: boolean, ro
 export function precompile09(opts: PrecompileInput): ExecResult {
     const data = opts.data;
     if (data.length !== 213) {
-        if (opts._debug !== undefined) {
+        if (opts._debug !== undefined)
             opts._debug(`BLAKE2F (0x09) failed: OUT_OF_RANGE dataLength=${data.length}`);
-        }
         return {
             returnValue: new Uint8Array(0),
             executionGasUsed: opts.gasLimit,
@@ -136,9 +132,8 @@ export function precompile09(opts: PrecompileInput): ExecResult {
     }
     const lastByte = data.subarray(212, 213)[0];
     if (lastByte !== 1 && lastByte !== 0) {
-        if (opts._debug !== undefined) {
+        if (opts._debug !== undefined)
             opts._debug(`BLAKE2F (0x09) failed: OUT_OF_RANGE lastByte=${lastByte}`);
-        }
         return {
             returnValue: new Uint8Array(0),
             executionGasUsed: opts.gasLimit,
@@ -153,13 +148,11 @@ export function precompile09(opts: PrecompileInput): ExecResult {
     const f = lastByte === 1;
     let gasUsed = opts.common.param('gasPrices', 'blake2Round');
     gasUsed *= BigInt(rounds);
-    if (opts._debug !== undefined) {
+    if (opts._debug !== undefined)
         opts._debug(`Run BLAKE2F (0x09) precompile data=${short(opts.data)} length=${opts.data.length} gasLimit=${opts.gasLimit} gasUsed=${gasUsed}`);
-    }
     if (opts.gasLimit < gasUsed) {
-        if (opts._debug !== undefined) {
+        if (opts._debug !== undefined)
             opts._debug(`BLAKE2F (0x09) failed: OOG`);
-        }
         return OOGResult(opts.gasLimit);
     }
     const h = new Uint32Array(16);
@@ -180,9 +173,8 @@ export function precompile09(opts: PrecompileInput): ExecResult {
     for (let i = 0; i < 16; i++) {
         outputView.setUint32(i * 4, h[i], true);
     }
-    if (opts._debug !== undefined) {
+    if (opts._debug !== undefined)
         opts._debug(`BLAKE2F (0x09) return hash=${bytesToHex(output)}`);
-    }
     return {
         executionGasUsed: gasUsed,
         returnValue: output,

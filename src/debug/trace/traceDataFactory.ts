@@ -1,25 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 let stringify: (buffer: Buffer, start: number, end: number) => string;
-if (typeof (Buffer.prototype as any).latin1Slice === 'function') {
+if (typeof (Buffer.prototype as any).latin1Slice === 'function')
     stringify = (buffer: Buffer, start: number, end: number) => {
         // this is just `buffer.toString("hex")`, but it skips a bunch of checks
         // that don't apply because our `start` and `end` just can't be out of
         // bounds.
         return (buffer as any).hexSlice(start, end);
     };
-}
-else {
+else
     stringify = (buffer: Buffer, start: number, end: number) => {
         return buffer.slice(start, end).toString('hex');
     };
-}
 function bufferToMinHexKey(buffer: Buffer): string {
     for (let i = 0, length = buffer.byteLength; i < length; i++) {
         // eslint-disable-next-line security/detect-object-injection
         const value = buffer[i];
         // once we find a non-zero value take the rest of the buffer as the key
-        if (value !== 0) {
+        if (value !== 0)
             if (i + 1 === length) {
                 // use a lookup table for single character lookups
                 // eslint-disable-next-line security/detect-object-injection
@@ -28,7 +26,6 @@ function bufferToMinHexKey(buffer: Buffer): string {
             else {
                 return stringify(buffer, i, length);
             }
-        }
     }
     return '';
 }
@@ -84,9 +81,8 @@ export const TraceDataFactory = () => {
             // Remove all leading zeroes from keys.
             const key = bufferToMinHexKey(value);
             const existing = traceDataLookup.get(key);
-            if (existing) {
+            if (existing)
                 return existing;
-            }
             let buffer: Buffer;
             let str: string;
             const data: ITraceData = {
@@ -94,13 +90,11 @@ export const TraceDataFactory = () => {
                  * Returns a 32-byte 0-padded Buffer
                  */
                 toBuffer: () => {
-                    if (buffer) {
+                    if (buffer)
                         return buffer;
-                    }
                     const length = value.byteLength;
-                    if (length === BYTE_LENGTH) {
+                    if (length === BYTE_LENGTH)
                         buffer = value;
-                    }
                     else {
                         // convert the buffer into the appropriately sized buffer.
                         const lengthDiff = BYTE_LENGTH - length;
@@ -113,9 +107,8 @@ export const TraceDataFactory = () => {
                  * Returns a 32-byte hex-string representation
                  */
                 toJSON: () => {
-                    if (str) {
+                    if (str)
                         return str;
-                    }
                     // convert a hex key like "ab01" into "00...00ab01"
                     return (str = `${PREFIXES[BYTE_LENGTH - key.length / 2]}${key}`);
                 },

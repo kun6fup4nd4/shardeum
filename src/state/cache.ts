@@ -60,9 +60,8 @@ export default class Cache {
     keyIsDeleted(key: Address): boolean {
         const keyStr = bytesToHex(key.bytes);
         const it = this._cache.find(keyStr);
-        if (it.node) {
+        if (it.node)
             return it.value.deleted;
-        }
         return false;
     }
     /**
@@ -82,9 +81,8 @@ export default class Cache {
         let account = this.lookup(address) as ShardeumAccount;
         if (!account) {
             account = await this._lookupAccount(address);
-            if (account) {
+            if (account)
                 this._update(address, account, false, false, false);
-            }
             else {
                 account = new ShardeumAccount();
                 account.virtual = true;
@@ -103,9 +101,8 @@ export default class Cache {
             if (addressHex) {
                 const address = new Address(Buffer.from(addressHex, 'hex'));
                 let account = await this._lookupAccount(address);
-                if (account) {
+                if (account)
                     this._update(address, account, false, false, false);
-                }
                 else {
                     account = new Account();
                     this._update(address, account, false, false, true);
@@ -190,11 +187,9 @@ export default class Cache {
         const keyHex = bytesToHex(key.bytes);
         const it = this._cache.find(keyHex);
         const val = value.serialize();
-        if (it.node) {
+        if (it.node)
             this._cache = it.update({ val, modified, deleted, virtual });
-        }
-        else {
+        else
             this._cache = this._cache.insert(keyHex, { val, modified, deleted, virtual });
-        }
     }
 }

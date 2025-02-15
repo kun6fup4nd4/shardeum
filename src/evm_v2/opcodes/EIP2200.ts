@@ -15,9 +15,8 @@ import type { Common } from '@ethereumjs/common';
  */
 export function updateSstoreGasEIP2200(runState: RunState, currentStorage: Uint8Array, originalStorage: Uint8Array, value: Uint8Array, key: Uint8Array, common: Common): bigint {
     // Fail if not enough gas is left
-    if (runState.interpreter.getGasLeft() <= common.param('gasPrices', 'sstoreSentryGasEIP2200')) {
+    if (runState.interpreter.getGasLeft() <= common.param('gasPrices', 'sstoreSentryGasEIP2200'))
         trap(ERROR.OUT_OF_GAS);
-    }
     // Noop
     if (equalsBytes(currentStorage, value)) {
         const sstoreNoopCost = common.param('gasPrices', 'sstoreNoopGasEIP2200');
@@ -25,17 +24,15 @@ export function updateSstoreGasEIP2200(runState: RunState, currentStorage: Uint8
     }
     if (equalsBytes(originalStorage, currentStorage)) {
         // Create slot
-        if (originalStorage.length === 0) {
+        if (originalStorage.length === 0)
             return common.param('gasPrices', 'sstoreInitGasEIP2200');
-        }
         // Delete slot
-        if (value.length === 0) {
+        if (value.length === 0)
             runState.interpreter.refundGas(common.param('gasPrices', 'sstoreClearRefundEIP2200'), 'EIP-2200 -> sstoreClearRefundEIP2200');
-        }
         // Write existing slot
         return common.param('gasPrices', 'sstoreCleanGasEIP2200');
     }
-    if (originalStorage.length > 0) {
+    if (originalStorage.length > 0)
         if (currentStorage.length === 0) {
             // Recreate slot
             runState.interpreter.subRefund(common.param('gasPrices', 'sstoreClearRefundEIP2200'), 'EIP-2200 -> sstoreClearRefundEIP2200');
@@ -44,8 +41,7 @@ export function updateSstoreGasEIP2200(runState: RunState, currentStorage: Uint8
             // Delete slot
             runState.interpreter.refundGas(common.param('gasPrices', 'sstoreClearRefundEIP2200'), 'EIP-2200 -> sstoreClearRefundEIP2200');
         }
-    }
-    if (equalsBytes(originalStorage, value)) {
+    if (equalsBytes(originalStorage, value))
         if (originalStorage.length === 0) {
             // Reset to original non-existent slot
             const sstoreInitRefund = common.param('gasPrices', 'sstoreInitRefundEIP2200');
@@ -56,7 +52,6 @@ export function updateSstoreGasEIP2200(runState: RunState, currentStorage: Uint8
             const sstoreCleanRefund = common.param('gasPrices', 'sstoreCleanRefundEIP2200');
             runState.interpreter.refundGas(BigInt(adjustSstoreGasEIP2929(runState, key, sstoreCleanRefund, 'cleanRefund', common)), 'EIP-2200 -> cleanRefund');
         }
-    }
     // Dirty update
     return common.param('gasPrices', 'sstoreDirtyGasEIP2200');
 }

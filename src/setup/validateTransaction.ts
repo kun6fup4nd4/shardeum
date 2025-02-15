@@ -19,9 +19,8 @@ export const validateTransaction = (shardus: Shardus) =>
 (tx: any): Response => {
     if (isInternalTx(tx)) {
         const internalTx = tx as InternalTx;
-        if (isInternalTXGlobal(internalTx) === true) {
+        if (isInternalTXGlobal(internalTx) === true)
             return { result: 'pass', reason: 'valid' };
-        }
         else if (tx.internalTXType === InternalTXType.ChangeConfig ||
             internalTx.internalTXType === InternalTXType.ChangeNetworkParam) {
             const devPublicKeys = shardus.getMultisigPublicKeys();
@@ -31,30 +30,25 @@ export const validateTransaction = (shardus: Shardus) =>
             const sigs: ShardusTypes.Sign[] = is_array_sig ? tx.sign : [tx.sign];
             const { sign, ...txWithoutSign } = tx;
             const authorized = verifyMultiSigs(txWithoutSign, sigs, devPublicKeys, requiredSigs, DevSecurityLevel.High);
-            if (!authorized) {
+            if (!authorized)
                 return { result: 'fail', reason: 'Unauthorized User' };
-            }
             else {
                 if (tx.internalTXType === InternalTXType.ChangeConfig) {
                     const givenConfig = Utils.safeJsonParse(tx.config);
                     if (comparePropertiesTypes(omitDevKeys(givenConfig), config.server) &&
                         isValidDevKeyAddition(givenConfig) &&
-                        isValidMultisigKeyAddition(givenConfig)) {
+                        isValidMultisigKeyAddition(givenConfig))
                         return { result: 'pass', reason: 'valid' };
-                    }
-                    else {
+                    else
                         return { result: 'fail', reason: 'Invalid config' };
-                    }
                 }
                 return { result: 'pass', reason: 'valid' };
             }
         }
-        else if (tx.internalTXType === InternalTXType.SetCertTime) {
+        else if (tx.internalTXType === InternalTXType.SetCertTime)
             return { result: 'pass', reason: 'valid' };
-        }
-        else if (tx.internalTXType === InternalTXType.InitRewardTimes) {
+        else if (tx.internalTXType === InternalTXType.InitRewardTimes)
             return InitRewardTimesTx.validate(tx as InitRewardTimes, shardus);
-        }
         else if (tx.internalTXType === InternalTXType.TransferFromSecureAccount) {
             const verifyResult = validateTransferFromSecureAccount(tx, shardus);
             return { result: verifyResult.success ? 'pass' : 'fail', reason: verifyResult.reason };
@@ -70,16 +64,14 @@ export const validateTransaction = (shardus: Shardus) =>
     }
     // Reject all other transactions if txPause is enabled
     const networkAccount = AccountsStorage.cachedNetworkAccount;
-    if (networkAccount.current.txPause) {
+    if (networkAccount.current.txPause)
         return {
             result: 'fail',
             reason: 'Transaction is not allowed. Network is paused.',
         };
-    }
     if (isDebugTx(tx)) {
-        if (!ShardeumFlags.debugTxEnabled) {
+        if (!ShardeumFlags.debugTxEnabled)
             return { result: 'fail', reason: 'Debug TX is not allowed' };
-        }
         //todo validate debug TX
         return { result: 'pass', reason: 'all_allowed' };
     }
@@ -94,12 +86,11 @@ export const validateTransaction = (shardus: Shardus) =>
         // FIX: seems like a bug using txObj as senderAddress
         // const senderAddress = txObj.getSenderAddress()
         const senderAddress = txObj;
-        if (!senderAddress) {
+        if (!senderAddress)
             return {
                 result: 'fail',
                 reason: 'Cannot derive sender address from tx',
             };
-        }
     }
     catch (e) {
         response.result = 'fail';
@@ -112,47 +103,39 @@ export const validateTransaction = (shardus: Shardus) =>
     return response;
 };
 function omitDevKeys(givenConfig: any): any {
-    if (!givenConfig.debug?.devPublicKeys && !givenConfig.debug?.multisigKeys) {
+    if (!givenConfig.debug?.devPublicKeys && !givenConfig.debug?.multisigKeys)
         return givenConfig;
-    }
     const { debug, ...restOfConfig } = givenConfig;
     const { devPublicKeys, multisigKeys, ...restOfDebug } = debug;
-    if (Object.keys(restOfDebug).length > 0) {
+    if (Object.keys(restOfDebug).length > 0)
         return { ...restOfConfig, debug: restOfDebug };
-    }
     return restOfConfig;
 }
 function isValidDevKeyAddition(givenConfig: any): boolean {
     const devPublicKeys = givenConfig.debug?.devPublicKeys;
-    if (!devPublicKeys) {
+    if (!devPublicKeys)
         return true;
-    }
     for (const key in devPublicKeys) {
-        if (!isValidHexKey(key)) {
+        if (!isValidHexKey(key))
             return false;
-        }
         // eslint-disable-next-line security/detect-object-injection
         const securityLevel = devPublicKeys[key];
-        if (!Object.values(DevSecurityLevel).includes(securityLevel)) {
+        if (!Object.values(DevSecurityLevel).includes(securityLevel))
             return false;
-        }
     }
     return true;
 }
 function isValidMultisigKeyAddition(givenConfig: any): boolean {
     const multisigKeys = givenConfig.debug?.multisigKeys;
-    if (!multisigKeys) {
+    if (!multisigKeys)
         return true;
-    }
     for (const key in multisigKeys) {
-        if (!ethers.isAddress(key)) {
+        if (!ethers.isAddress(key))
             return false;
-        }
         // eslint-disable-next-line security/detect-object-injection
         const securityLevel = multisigKeys[key];
-        if (!Object.values(DevSecurityLevel).includes(securityLevel)) {
+        if (!Object.values(DevSecurityLevel).includes(securityLevel))
             return false;
-        }
     }
     return true;
 }

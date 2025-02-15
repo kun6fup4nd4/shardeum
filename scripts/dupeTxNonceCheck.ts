@@ -96,12 +96,10 @@ for (let i = 2; i < process.argv.length; i++) {
             process.exit(1);
         }
     }
-    else if (process.argv[i] === '--color') {
+    else if (process.argv[i] === '--color')
         useAnsiColors = true;
-    }
-    else if (!process.argv[i].startsWith('-')) {
+    else if (!process.argv[i].startsWith('-'))
         dbPath = process.argv[i];
-    }
 }
 // Remove any NaN values that might have been introduced
 const excludedAccountTypeNames = excludedAccountTypes.map(type => `${type} (${AccountType[type] || 'Unknown'})`);
@@ -150,23 +148,21 @@ async function checkAllTransactionsForDuplicateNonces(): Promise<void> {
     SELECT txId, data, timestamp, cycleNumber
     FROM transactions
   `;
-    if (cycleRange.length > 0) {
+    if (cycleRange.length > 0)
         if (cycleRange.length === 1) {
             queryString += ` WHERE cycleNumber >= ${cycleRange[0]}`;
         }
         else {
             queryString += ` WHERE cycleNumber >= ${cycleRange[0]} AND cycleNumber <= ${cycleRange[1]}`;
         }
-    }
     queryString += ' ORDER BY timestamp';
     const transactions = await runQuery(db, queryString);
     const duplicates = new Map<string, Map<number, any[]>>();
     for (const tx of transactions) {
         const txData = JSON.parse(tx.data);
         // Skip excluded AccountTypes
-        if (excludedAccountTypes.includes(txData.accountType)) {
+        if (excludedAccountTypes.includes(txData.accountType))
             continue;
-        }
         const fromAddress = txData.txFrom || txData.readableReceipt?.from;
         const toAddress = txData.txTo || txData.readableReceipt?.to;
         const nonce = parseInt(txData.readableReceipt?.nonce || '0', 16);
@@ -177,13 +173,11 @@ async function checkAllTransactionsForDuplicateNonces(): Promise<void> {
         const accountType = txData.accountType;
         const cycleNumber = tx.cycleNumber;
         if (fromAddress && !isNaN(nonce)) {
-            if (!duplicates.has(fromAddress)) {
+            if (!duplicates.has(fromAddress))
                 duplicates.set(fromAddress, new Map());
-            }
             const accountDuplicates = duplicates.get(fromAddress)!;
-            if (!accountDuplicates.has(nonce)) {
+            if (!accountDuplicates.has(nonce))
                 accountDuplicates.set(nonce, []);
-            }
             accountDuplicates.get(nonce)!.push({ txId: tx.txId, toAddress, status, hasReadableReceipt, internalTXType, timestamp, accountType, cycleNumber });
         }
     }
@@ -218,9 +212,8 @@ async function checkAllTransactionsForDuplicateNonces(): Promise<void> {
                 accountHasDuplicates = true;
             }
         }
-        if (accountHasDuplicates) {
+        if (accountHasDuplicates)
             accountsWithDuplicates++;
-        }
     }
     log(`\n${colors.bright()}${colors.blue()}Total transactions with duplicate nonces: ${totalDuplicates}${colors.reset()}`, fileStream);
     log(`${colors.bright()}${colors.blue()}Total accounts with duplicate nonces: ${accountsWithDuplicates}${colors.reset()}`, fileStream);

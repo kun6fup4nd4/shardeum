@@ -1,22 +1,18 @@
 import { DecimalString, HexString } from '../shardeum/shardeumTypes';
 import { Utils } from '@shardeum-foundation/lib-types';
 export const isObject = (val): boolean => {
-    if (val === null) {
+    if (val === null)
         return false;
-    }
-    if (Array.isArray(val)) {
+    if (Array.isArray(val))
         return false;
-    }
     return typeof val === 'function' || typeof val === 'object';
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function convertBigIntsToHex(obj: any): any {
-    if (typeof obj === 'bigint') {
+    if (typeof obj === 'bigint')
         return `0x${obj.toString(16)}`;
-    }
-    else if (Array.isArray(obj)) {
+    else if (Array.isArray(obj))
         return obj.map((element) => convertBigIntsToHex(element));
-    }
     else if (typeof obj === 'object' && obj !== null) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newObj: {
@@ -40,39 +36,30 @@ export function fixBigIntLiteralsToBigInt(obj): any {
 export const _base16BNParser = (value: bigint | HexString | {
     __BigInt__: string;
 }): bigint => {
-    if (typeof value == 'string' && value.slice(0, 2) == '0x') {
+    if (typeof value == 'string' && value.slice(0, 2) == '0x')
         throw new Error('Parsing hex string with prefix 0x to bigint instance is not the same without 0x and could skewed the data');
-    }
-    if (typeof value === 'bigint') {
+    if (typeof value === 'bigint')
         return value;
-    }
-    if (typeof value == 'string') {
+    if (typeof value == 'string')
         return BigInt('0x' + value);
-    }
-    if (value && typeof value.__BigInt__ === 'string') {
+    if (value && typeof value.__BigInt__ === 'string')
         return BigInt(value.__BigInt__);
-    }
     throw new Error(`_base16BNParser: Unacceptable parameter value ${value}  typeof ${typeof value}`);
 };
 export const _base10BNParser = (value: bigint | DecimalString): bigint => {
-    if (typeof value == 'string' && value.slice(0, 2) == '0x') {
+    if (typeof value == 'string' && value.slice(0, 2) == '0x')
         throw new Error('Parameter value does not seem to be a valid base 10 (decimal)');
-    }
-    if (typeof value === 'string' && isNaN(value as unknown as number)) {
+    if (typeof value === 'string' && isNaN(value as unknown as number))
         throw new Error('Parameter value does not seem to be a valid base 10 (decimal)');
-    }
-    if (typeof value === 'bigint') {
+    if (typeof value === 'bigint')
         return value;
-    }
-    if (typeof value == 'string') {
+    if (typeof value == 'string')
         return BigInt(value);
-    }
     throw new Error(`_base10BNParser: Unacceptable parameter value ${value}  typeof ${typeof value}`);
 };
 export const _readableSHM = (bnum: bigint, autoDecimal = true): string => {
-    if (typeof bnum !== 'bigint') {
+    if (typeof bnum !== 'bigint')
         throw new Error('Parameter value is not a valid bigint instance');
-    }
     const unit_SHM = ' shm';
     const unit_WEI = ' wei';
     if (!autoDecimal)
@@ -97,15 +84,13 @@ export function debug_map_replacer<T, K, V>(key, value: T | Map<K, V>): T | [
     K,
     V
 ][] {
-    if (value instanceof Map) {
+    if (value instanceof Map)
         // return {
         //   dataType: 'Map',
         //   value: Array.from(value.entries()), // or with spread: value: [...value]
         // }
         // we do not intend to revive this
         return Array.from(value.entries());
-    }
-    else {
+    else
         return value;
-    }
 }

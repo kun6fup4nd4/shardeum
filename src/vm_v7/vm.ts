@@ -76,31 +76,26 @@ export class VM {
     protected constructor(opts: VMOpts = {}) {
         this.events = new AsyncEventEmitter<VMEvents>();
         this._opts = opts;
-        if (opts.common) {
+        if (opts.common)
             this.common = opts.common;
-        }
         else {
             const DEFAULT_CHAIN = Chain.Mainnet;
             this.common = new Common({ chain: DEFAULT_CHAIN });
         }
-        if (opts.stateManager) {
+        if (opts.stateManager)
             this.stateManager = opts.stateManager;
-        }
-        else {
+        else
             this.stateManager = new DefaultStateManager({ common: this.common });
-        }
         this.blockchain = opts.blockchain ?? new (Blockchain as any)({ common: this.common });
         // TODO tests
-        if (opts.evm) {
+        if (opts.evm)
             this.evm = opts.evm;
-        }
-        else {
+        else
             this.evm = new EVM({
                 common: this.common,
                 stateManager: this.stateManager,
                 blockchain: this.blockchain,
             });
-        }
         this._setHardfork = opts.setHardfork ?? false;
         this._emit = async (topic: string, data: any): Promise<void> => {
             return new Promise((resolve) => this.events.emit(topic as keyof VMEvents, data, resolve));
@@ -115,15 +110,12 @@ export class VM {
     } = {}): Promise<void> {
         if (this._isInitialized)
             return;
-        if (genesisState !== undefined) {
+        if (genesisState !== undefined)
             await this.stateManager.generateCanonicalGenesis(genesisState);
-        }
-        else if (this._opts.stateManager === undefined) {
+        else if (this._opts.stateManager === undefined)
             throw Error('genesisState state required to set genesis for stateManager');
-        }
-        if (typeof (<any>this.blockchain)._init === 'function') {
+        if (typeof (<any>this.blockchain)._init === 'function')
             await (this.blockchain as any)._init({ genesisState });
-        }
         if (this._opts.activatePrecompiles === true && typeof this._opts.stateManager === 'undefined') {
             await this.evm.journal.checkpoint();
             // put 1 wei in each of the precompiles in order to make the accounts non-empty and thus not have them deduct `callNewAccount` gas.

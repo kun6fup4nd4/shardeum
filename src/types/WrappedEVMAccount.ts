@@ -26,9 +26,8 @@ export interface WrappedEVMAccount extends BaseAccount {
     operatorAccountInfo?: OperatorAccountInfo;
 }
 export function serializeWrappedEVMAccount(stream: VectorBufferStream, obj: WrappedEVMAccount, root = false): void {
-    if (root) {
+    if (root)
         stream.writeUInt16(TypeIdentifierEnum.cWrappedEVMAccount);
-    }
     stream.writeUInt8(cWrappedEVMAccountVersion);
     serializeBaseAccount(stream, obj, false);
     stream.writeString(obj.ethAddress);
@@ -39,9 +38,8 @@ export function serializeWrappedEVMAccount(stream: VectorBufferStream, obj: Wrap
         stream.writeUInt8(1); // Presence flag
         serializeEVMAccount(stream, obj.account);
     }
-    else {
+    else
         stream.writeUInt8(0); // Absence flag
-    }
     obj.key !== undefined ? (stream.writeUInt8(1), stream.writeString(obj.key)) : stream.writeUInt8(0);
     obj.value !== undefined
         ? (stream.writeUInt8(1), stream.writeBuffer(Buffer.from(obj.value)))
@@ -77,9 +75,8 @@ export function serializeWrappedEVMAccount(stream: VectorBufferStream, obj: Wrap
 }
 export function deserializeWrappedEVMAccount(stream: VectorBufferStream): WrappedEVMAccount {
     const version = stream.readUInt8();
-    if (version > cWrappedEVMAccountVersion) {
+    if (version > cWrappedEVMAccountVersion)
         throw new Error('WrappedEVMAccount version mismatch');
-    }
     const baseAccount = deserializeBaseAccount(stream);
     const ethAddress = stream.readString();
     const hash = stream.readString();

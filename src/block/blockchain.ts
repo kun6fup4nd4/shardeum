@@ -19,9 +19,8 @@ export class ShardeumBlock extends Blockchain {
         // need to then read the block from the canonical chain Q: is this safe? We
         // know it is OK if we call it from the iterator... (runBlock)
         const blockNumber = parseInt(blockId.toString());
-        if (blocks[`${blockNumber}`]) {
+        if (blocks[`${blockNumber}`])
             return blocks[`${blockNumber}`];
-        }
         return this.createBlock(blockId);
     }
     createBlock(blockId): Block {

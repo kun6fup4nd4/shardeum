@@ -6,17 +6,15 @@ import { SecureAccount } from '../shardeum/secureAccounts';
 import { deserializeBaseAccount, serializeBaseAccount } from './BaseAccount';
 import { Utils } from '@shardeum-foundation/lib-types';
 function validateSecureAccount(obj: SecureAccount) {
-    if (typeof obj.id !== 'string' || typeof obj.hash !== 'string' || typeof obj.timestamp !== 'number' || typeof obj.name !== 'string' || typeof obj.nextTransferAmount !== 'bigint' || typeof obj.nextTransferTime !== 'number' || typeof obj.nonce !== 'number') {
+    if (typeof obj.id !== 'string' || typeof obj.hash !== 'string' || typeof obj.timestamp !== 'number' || typeof obj.name !== 'string' || typeof obj.nextTransferAmount !== 'bigint' || typeof obj.nextTransferTime !== 'number' || typeof obj.nonce !== 'number')
         throw new Error(`Invalid SecureAccount object: ${Utils.safeStringify(obj)}`);
-    }
 }
 const cSecureAccountVersion = 1;
 export function serializeSecureAccount(stream: VectorBufferStream, obj: SecureAccount, root = false): void {
     // Apply basic validation on the object (check that all the properties of SecureAccount are present and of the correct types)
     validateSecureAccount(obj);
-    if (root) {
+    if (root)
         stream.writeUInt16(TypeIdentifierEnum.cSecureAccount);
-    }
     stream.writeUInt8(cSecureAccountVersion);
     serializeBaseAccount(stream, obj, false);
     stream.writeString(obj.id);
@@ -29,9 +27,8 @@ export function serializeSecureAccount(stream: VectorBufferStream, obj: SecureAc
 }
 export function deserializeSecureAccount(stream: VectorBufferStream): SecureAccount {
     const version = stream.readUInt8();
-    if (version > cSecureAccountVersion) {
+    if (version > cSecureAccountVersion)
         throw new Error('SecureAccount version mismatch');
-    }
     const baseAccount = deserializeBaseAccount(stream);
     // Check if we have enough bytes remaining for the rest of the data
     const remainingBytes = (stream as any).buffer.length - stream.position;
@@ -42,9 +39,8 @@ export function deserializeSecureAccount(stream: VectorBufferStream): SecureAcco
         8 + // nextTransferAmount (BigUInt64)
         8 + // nextTransferTime (BigUInt64)
         4; // nonce (UInt32)
-    if (remainingBytes < minimumBytesNeeded) {
+    if (remainingBytes < minimumBytesNeeded)
         throw new Error(`Unexpected end of buffer: remaining bytes: ${remainingBytes}, needed ${minimumBytesNeeded}`);
-    }
     // Read each field, asserting its type as we go. If there is an issue, log and throw error.
     try {
         const id = stream.readString();

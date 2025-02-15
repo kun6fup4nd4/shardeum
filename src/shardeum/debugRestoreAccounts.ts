@@ -33,9 +33,8 @@ export async function loadAccountDataFromDB(shardus: Shardus, options: LoadOptio
         path = Path.resolve('./', path);
         // ./account-export.json from ShardeumFlags.ts
         // eslint-disable-next-line security/detect-non-literal-fs-filename
-        if (fs.existsSync(path) === false) {
+        if (fs.existsSync(path) === false)
             return report;
-        }
         let accountArray = [];
         let totalAccounts = 0;
         if (loadInitialDataPerBatch === true) {
@@ -48,7 +47,7 @@ export async function loadAccountDataFromDB(shardus: Shardus, options: LoadOptio
                 crlfDelay: Infinity,
             });
             rl.on('line', async (line) => {
-                if (line != '') {
+                if (line != '')
                     try {
                         const account = Utils.safeJsonParse(line);
                         if (account != null) {
@@ -66,7 +65,6 @@ export async function loadAccountDataFromDB(shardus: Shardus, options: LoadOptio
                     }
                     catch (ex) {
                     }
-                }
             });
             await once(rl, 'close');
             if (accountArray.length > 0) {
@@ -87,7 +85,7 @@ export async function loadAccountDataFromDB(shardus: Shardus, options: LoadOptio
                 crlfDelay: Infinity,
             });
             rl.on('line', (line) => {
-                if (line != '') {
+                if (line != '')
                     try {
                         const account = Utils.safeJsonParse(line);
                         if (account != null) {
@@ -95,7 +93,6 @@ export async function loadAccountDataFromDB(shardus: Shardus, options: LoadOptio
                         }
                     }
                     catch (ex) { }
-                }
             });
             await once(rl, 'close');
         }
@@ -144,21 +141,17 @@ export const processAccountsData = async (shardus, report: LoadReport, accountAr
         account.isGlobal = Boolean(account.isGlobal);
         account.cycleNumber = 0; //force to 0.  later if we use a cycle offset, then we leave cycle number alone
         //but for now we have to start back at 0 in a new network
-        if (account.timestamp === 0) {
+        if (account.timestamp === 0)
             account.timestamp = 1; //fix some old data to have non zero timestamps
-        }
-        if (account.data.timestamp === 0) {
+        if (account.data.timestamp === 0)
             account.data.timestamp = 1; //fix some old data to have non zero timestamps
-        }
         // in liberty 1.0 contract accounts were globbal.  They are now going to be non global in
         // liberty 1.1   We will keep the network account as global though
-        if (account.accountId != networkAccount) {
+        if (account.accountId != networkAccount)
             account.isGlobal = false;
-        }
-        if (account.timestamp < lastTS) {
+        if (account.timestamp < lastTS)
             //accounts are descending timestamps.
             throw new Error(`invalid timestamp sort: ${account.timestamp}`);
-        }
         lastTS = account.timestamp;
         // Filter out failed EVM Receipts to get stored
         // if (account.data.accountType) {
@@ -169,7 +162,7 @@ export const processAccountsData = async (shardus, report: LoadReport, accountAr
         //     if (account.data.readableReceipt.status === 0) continue
         //   }
         // }
-        if (!ShardeumFlags.EVMReceiptsAsAccounts) {
+        if (!ShardeumFlags.EVMReceiptsAsAccounts)
             if (account.data.accountType === AccountType.Receipt ||
                 account.data.accountType === AccountType.NodeRewardReceipt ||
                 account.data.accountType === AccountType.StakeReceipt ||
@@ -178,10 +171,8 @@ export const processAccountsData = async (shardus, report: LoadReport, accountAr
                 accountArrayClean.receipts.push(account);
             else
                 accountArrayClean.accounts.push(account);
-        }
-        else {
+        else
             accountArrayClean.accounts.push(account);
-        }
     }
     //replace with the clean array
     // accountArray = accountArrayClean
@@ -190,7 +181,7 @@ export const processAccountsData = async (shardus, report: LoadReport, accountAr
         if (logVerbose)
             shardus.log(`loadAccountDataFromDB ${Utils.safeStringify(firstAccount)}`);
     }
-    if (ShardeumFlags.forwardGenesisAccounts) {
+    if (ShardeumFlags.forwardGenesisAccounts)
         // let bucketSize = ShardeumFlags.DebugRestoreArchiveBatch
         // let limit = bucketSize
         // let j = limit
@@ -216,7 +207,6 @@ export const processAccountsData = async (shardus, report: LoadReport, accountAr
         }
         catch (error) {
         }
-    }
     else {
         await shardus.forwardAccounts({ accounts: accountArrayClean.accounts, receipts: [] });
         setGenesisAccounts(accountArrayClean.accounts); // As an assumption to save in memory, so that when it's queried it can reponse fast, we can make it query from DB later

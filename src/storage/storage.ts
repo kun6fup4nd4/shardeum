@@ -37,10 +37,9 @@ class Storage {
         if (!isServiceMode()) {
             //would be neat if this wasn't needed here (refactor so storage stays more generic?)
             await this.storage.runCreate('CREATE TABLE if not exists `accountsEntry` (`accountId` VARCHAR(255) NOT NULL, `timestamp` BIGINT NOT NULL, `data` JSON NOT NULL, PRIMARY KEY (`accountId`))');
-            if (ShardeumFlags.NewStorageIndex) {
+            if (ShardeumFlags.NewStorageIndex)
                 //add index to timestamp
                 await this.storage.run('CREATE INDEX IF NOT EXISTS timestamp1 ON accountsEntry(timestamp)');
-            }
             if (ShardeumFlags.enableRIAccountsCache) {
                 await this.storage.runCreate('CREATE TABLE if not exists `riAccountsCache` (`accountId` VARCHAR(255) NOT NULL, `timestamp` BIGINT NOT NULL, `data` JSON NOT NULL, PRIMARY KEY (`accountId`))');
                 await this.storage.run('CREATE INDEX IF NOT EXISTS timestampIdx ON riAccountsCache(timestamp)');
@@ -82,9 +81,8 @@ class Storage {
                 attributes: { exclude: ['createdAt', 'updatedAt', 'id'] },
                 raw: true,
             });
-            if (result.length > 0) {
+            if (result.length > 0)
                 return result[0];
-            }
         }
         catch (e) {
             throw new Error(e);
@@ -138,9 +136,8 @@ class Storage {
                 attributes: { exclude: ['createdAt', 'updatedAt', 'id'] },
                 raw: true,
             });
-            if (result.length > 0) {
+            if (result.length > 0)
                 return result[0];
-            }
         }
         catch (e) {
             throw new Error(e);
@@ -150,24 +147,18 @@ class Storage {
         limit = Number(limit);
         tsStart = Number(tsStart);
         tsEnd = Number(tsEnd);
-        if (accountStart && !/^[0-9a-fA-F]*$/.test(accountStart)) {
+        if (accountStart && !/^[0-9a-fA-F]*$/.test(accountStart))
             throw new Error('accountStart should be an empty string or a string with only upper or lower case hex chars.');
-        }
-        if (accountEnd && !/^[0-9a-fA-F]*$/.test(accountEnd)) {
+        if (accountEnd && !/^[0-9a-fA-F]*$/.test(accountEnd))
             throw new Error('accountEnd should be an empty string or a string with only upper or lower case hex chars.');
-        }
-        if (accountOffset && !/^[0-9a-fA-F]*$/.test(accountOffset)) {
+        if (accountOffset && !/^[0-9a-fA-F]*$/.test(accountOffset))
             throw new Error('accountOffset should be an empty string or a string with only upper or lower case hex chars.');
-        }
-        if (isNaN(limit) || isNaN(tsStart) || isNaN(tsEnd)) {
+        if (isNaN(limit) || isNaN(tsStart) || isNaN(tsEnd))
             throw new Error('arguments should be numbers.');
-        }
-        if (tsStart < 0 || tsEnd < 0 || tsEnd < tsStart) {
+        if (tsStart < 0 || tsEnd < 0 || tsEnd < tsStart)
             throw new Error('Invalid timestamp range.');
-        }
-        if (limit <= 0) {
+        if (limit <= 0)
             throw new Error('Invalid limit. Must be a positive number');
-        }
         const query = `SELECT * FROM accountsEntry WHERE (timestamp, accountId) >= (?, ?) 
                      AND timestamp < ? 
                      AND accountId <= ? AND accountId >= ? 

@@ -24,15 +24,13 @@ export const replacer = <T, K, V>(_key, value: Map<K, V> | T): {
     ][];
 } | T => {
     const originalObject = value; // this[key]
-    if (originalObject instanceof Map) {
+    if (originalObject instanceof Map)
         return {
             dataType: 'stringifyReduce_map_2_array',
             value: Array.from(originalObject.entries()), // or with spread: value: [...originalObject]
         };
-    }
-    else {
+    else
         return value as T;
-    }
 };
 /**
  * Check if the test version is equal or newer than the min version
@@ -41,9 +39,8 @@ export const replacer = <T, K, V>(_key, value: Map<K, V> | T): {
  * @returns
  */
 export function isEqualOrNewerVersion(minimumVersion: string, testVersion: string): boolean {
-    if (minimumVersion === testVersion) {
+    if (minimumVersion === testVersion)
         return true;
-    }
     const minVerParts = minimumVersion.split('.');
     const testVerParts = testVersion.split('.');
     /* eslint-disable security/detect-object-injection */
@@ -78,9 +75,8 @@ export function isValidVersion(minimumVersion: string, latestVersion: string, te
 export function getRandom<T>(arr: T[], n: number): T[] {
     let len = arr.length;
     const taken = new Array(len);
-    if (n > len) {
+    if (n > len)
         n = len;
-    }
     const result = new Array(n);
     /* eslint-disable security/detect-object-injection */
     while (n--) {
@@ -106,16 +102,14 @@ export function isWithinRange(a: number, b: number, range: number): boolean {
  */
 export function formatErrorMessage(err: unknown): string {
     let errMsg = 'An error occurred';
-    if (typeof err === 'string') {
+    if (typeof err === 'string')
         errMsg = err;
-    }
     else if (err instanceof Error) {
         errMsg = err.message;
-        if (err.stack) {
+        if (err.stack)
             errMsg += ` \nStack trace:\n${err.stack}`;
-        }
     }
-    else if (typeof err === 'object' && err !== null) {
+    else if (typeof err === 'object' && err !== null)
         //chat gpt reccomended this fancy part but the linter doesn't like it
         // const keys = Object.keys(err)
         // if (keys.length > 0) {
@@ -126,11 +120,9 @@ export function formatErrorMessage(err: unknown): string {
         //   }
         // } else {
         errMsg = `Unknown error: ${Utils.safeStringify(err)}`;
-        // }
-    }
-    else {
+    // }
+    else
         errMsg = `Unknown error: ${err}`;
-    }
     return errMsg;
 }
 type MajorityTargetValueFunc<T> = (o: T) => string;
@@ -167,32 +159,27 @@ export function findMajorityResult<T>(results: MajorityParam<T>, getTargetValue:
         }
     }
     // Check if majority count is greater than 1/2 of total results
-    if (majorityCount > totalResults / 2) {
+    if (majorityCount > totalResults / 2)
         return majorityResult;
-    }
-    else {
+    else
         return null;
-    }
 }
 export function comparePropertiesTypes(A: any, B: any): boolean {
     for (const key in A) {
         if (key in A) {
-            if (!(key in B)) {
+            if (!(key in B))
                 // Property exists in A but not in B
                 return false;
-            }
             // If both properties are objects (and not null), compare recursively
             if (typeof A[key] === 'object' && A[key] !== null &&
-                typeof B[key] === 'object' && B[key] !== null) {
+                typeof B[key] === 'object' && B[key] !== null)
                 if (!comparePropertiesTypes(A[key], B[key])) {
                     return false;
                 }
-            }
-            else {
-                // For non-object properties, check if types are different
-                if (typeof A[key] !== typeof B[key]) {
-                    return false;
-                }
+            else 
+            // For non-object properties, check if types are different
+            if (typeof A[key] !== typeof B[key]) {
+                return false;
             }
         }
     }

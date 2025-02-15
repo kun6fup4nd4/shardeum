@@ -71,9 +71,8 @@ export const shardusPutToNode = async <ResponseType>(node: ShardusTypes.Validato
  * @returns
  */
 export function getUserIp(req): string {
-    if (req == null) {
+    if (req == null)
         return null;
-    }
     return (req.headers['x-forwarded-for'] ||
         (req.connection ? req.connection.remoteAddress : null) ||
         (req.socket ? req.socket.remoteAddress : null) ||
@@ -86,19 +85,17 @@ export function getUserIp(req): string {
  * @returns
  */
 export function unsafeGetClientIp(req): string {
-    if (req == null) {
+    if (req == null)
         return null;
-    }
     let clientIp = req.headers['x-forwarded-for'];
     if (clientIp) {
         // extract the client IP address from the X-Forwarded-For header
         const ips = clientIp.split(',');
         clientIp = ips[ips.length - 1].trim();
     }
-    else {
+    else
         // fallback to remoteAddress if X-Forwarded-For header is not present
         clientIp = req.connection ? req.connection.remoteAddress : null;
-    }
     // make sure we return a string or null
     return clientIp as string;
 }

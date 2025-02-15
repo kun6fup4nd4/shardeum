@@ -6,33 +6,28 @@ import { fixDeserializedWrappedEVMAccount } from '../shardeum/wrappedEVMAccountF
 import { convertBigIntsToHex } from './serialization';
 import * as AccountsStorage from '../storage/accountStorage';
 export async function getAccountData(shardus, address: string, req: any): Promise<any> {
-    if (address.length !== 42 && address.length !== 64) {
+    if (address.length !== 42 && address.length !== 64)
         return { error: 'Invalid address' };
-    }
     const id = shardus.getNodeId();
     const isInRotationBonds = shardus.isNodeInRotationBounds(id);
-    if (isInRotationBonds) {
+    if (isInRotationBonds)
         return { error: 'node close to rotation edges' };
-    }
     if (!req.query.type) {
         let shardusAddress = address.toLowerCase();
-        if (address.length === 42) {
+        if (address.length === 42)
             shardusAddress = toShardusAddress(address, AccountType.Account);
-        }
         const hexBlockNumber = req.query.blockNumber;
         const hexBlockNumberStr = isHexString(hexBlockNumber) ? hexBlockNumber : null;
         let data;
         if (isArchiverMode() && hexBlockNumberStr) {
             data = await AccountsStorage.fetchAccountDataFromCollector(shardusAddress, hexBlockNumberStr);
-            if (!data) {
+            if (!data)
                 return { account: null };
-            }
         }
         else {
             const account = await shardus.getLocalOrRemoteAccount(shardusAddress);
-            if (!account) {
+            if (!account)
                 return { account: null };
-            }
             data = account.data;
         }
         fixDeserializedWrappedEVMAccount(data);
@@ -41,13 +36,11 @@ export async function getAccountData(shardus, address: string, req: any): Promis
     }
     else {
         let accountType = parseInt(req.query.type);
-        if (AccountType[accountType] == null) {
+        if (AccountType[accountType] == null)
             return { error: 'Invalid account type' };
-        }
         const secondaryAddressStr = (req.query.secondaryAddress || '').toString();
-        if (secondaryAddressStr && secondaryAddressStr.length !== 66) {
+        if (secondaryAddressStr && secondaryAddressStr.length !== 66)
             return { error: 'Invalid secondary address' };
-        }
         const shardusAddress = toShardusAddressWithKey(address, secondaryAddressStr, accountType);
         const account = await shardus.getLocalOrRemoteAccount(shardusAddress);
         const readableAccount = convertBigIntsToHex(account);

@@ -20,14 +20,12 @@ export function accessAddressEIP2929(runState: RunState, address: Address, commo
         runState.interpreter.journal.addWarmedAddress(addressStr);
         // CREATE, CREATE2 opcodes have the address warmed for free.
         // selfdestruct beneficiary address reads are charged an *additional* cold access
-        if (chargeGas) {
+        if (chargeGas)
             return common.param('gasPrices', 'coldaccountaccess');
-        }
         // Warm: (selfdestruct beneficiary address reads are not charged when warm)
     }
-    else if (chargeGas && !isSelfdestructOrAuthcall) {
+    else if (chargeGas && !isSelfdestructOrAuthcall)
         return common.param('gasPrices', 'warmstorageread');
-    }
     return BigInt(0);
 }
 /**
@@ -48,9 +46,8 @@ export function accessStorageEIP2929(runState: RunState, key: Uint8Array, isSsto
         runState.interpreter.journal.addWarmedStorage(address, key);
         return common.param('gasPrices', 'coldsload');
     }
-    else if (!isSstore) {
+    else if (!isSstore)
         return common.param('gasPrices', 'warmstorageread');
-    }
     return BigInt(0);
 }
 /**
@@ -69,7 +66,7 @@ export function adjustSstoreGasEIP2929(runState: RunState, key: Uint8Array, defa
     const address = runState.interpreter.getAddress().bytes;
     const warmRead = common.param('gasPrices', 'warmstorageread');
     const coldSload = common.param('gasPrices', 'coldsload');
-    if (runState.interpreter.journal.isWarmedStorage(address, key)) {
+    if (runState.interpreter.journal.isWarmedStorage(address, key))
         switch (costName) {
             case 'noop':
                 return warmRead;
@@ -78,6 +75,5 @@ export function adjustSstoreGasEIP2929(runState: RunState, key: Uint8Array, defa
             case 'cleanRefund':
                 return common.param('gasPrices', 'sstoreReset') - coldSload - warmRead;
         }
-    }
     return defaultCost;
 }

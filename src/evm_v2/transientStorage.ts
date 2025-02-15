@@ -28,13 +28,11 @@ export class TransientStorage implements TransientStorageInterface {
      */
     public get(addr: Address, key: Uint8Array): Uint8Array {
         const map = this._storage.get(addr.toString());
-        if (!map) {
+        if (!map)
             return new Uint8Array(32);
-        }
         const value = map.get(bytesToHex(key));
-        if (!value) {
+        if (!value)
             return new Uint8Array(32);
-        }
         return value;
     }
     /**
@@ -44,16 +42,13 @@ export class TransientStorage implements TransientStorageInterface {
      * @param value the new value of the transient storage slot to set
      */
     public put(addr: Address, key: Uint8Array, value: Uint8Array): void {
-        if (key.length !== 32) {
+        if (key.length !== 32)
             throw new Error('Transient storage key must be 32 bytes long');
-        }
-        if (value.length > 32) {
+        if (value.length > 32)
             throw new Error('Transient storage value cannot be longer than 32 bytes');
-        }
         const addrString = addr.toString();
-        if (!this._storage.has(addrString)) {
+        if (!this._storage.has(addrString))
             this._storage.set(addrString, new Map());
-        }
         const map = this._storage.get(addrString)!;
         const keyStr = bytesToHex(key);
         const prevValue = map.get(keyStr) ?? new Uint8Array(32);

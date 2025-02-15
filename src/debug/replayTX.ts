@@ -61,17 +61,15 @@ function getApplyTXState(txId: string, estimateOnly: boolean): ShardeumState {
             accountInvolved: (txState: TransactionState, address: string) => {
                 // Missing EOA/CA (Type 0) will halt here
                 const { found, shardusKey } = hasAccount(address);
-                if (!found) {
+                if (!found)
                     return false;
-                }
                 return true;
             },
             contractStorageInvolved: (txState: TransactionState, address: string, key: string) => {
                 const { account, shardusKey } = getKey(address, key, AccountType.ContractStorage);
                 if (!account) {
-                    if (estimateOnly) {
+                    if (estimateOnly)
                         return false;
-                    }
                     return true; // Always return true so that blank accounts are created for missing accounts
                 }
                 return true;
@@ -111,10 +109,9 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
     // TODO: Do I set appData in above shardeumState?
     const validatorStakedAccounts: Map<string, OperatorAccountInfo> = new Map();
     for (const accountId in wrappedStates) {
-        if (shardusReceiptAddress === accountId) {
+        if (shardusReceiptAddress === accountId)
             //have to skip the created receipt account
             continue;
-        }
         // eslint-disable-next-line security/detect-object-injection
         const wrappedEVMAccount: WrappedEVMAccount = wrappedStates[accountId] as WrappedEVMAccount;
         fixDeserializedWrappedEVMAccount(wrappedEVMAccount);
@@ -125,16 +122,13 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
             address = Address.fromString(wrappedEVMAccount.ethAddress);
         if (wrappedEVMAccount.accountType === AccountType.Account) {
             shardeumState._transactionState.insertFirstAccountReads(address, wrappedEVMAccount.account);
-            if (wrappedEVMAccount.operatorAccountInfo) {
+            if (wrappedEVMAccount.operatorAccountInfo)
                 validatorStakedAccounts.set(wrappedEVMAccount.ethAddress, wrappedEVMAccount.operatorAccountInfo);
-            }
         }
-        else if (wrappedEVMAccount.accountType === AccountType.ContractCode) {
+        else if (wrappedEVMAccount.accountType === AccountType.ContractCode)
             shardeumState._transactionState.insertFirstContractBytesReads(address, wrappedEVMAccount.codeByte);
-        }
-        else if (wrappedEVMAccount.accountType === AccountType.ContractStorage) {
+        else if (wrappedEVMAccount.accountType === AccountType.ContractStorage)
             shardeumState._transactionState.insertFirstContractStorageReads(address, wrappedEVMAccount.key, wrappedEVMAccount.value);
-        }
     }
     // Create new CA account if it is a contract deploy tx
     if (transaction.to == null) {
@@ -187,12 +181,11 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
                 }
             }
             const stack: ITraceData[] = [];
-            if (options.disableStack !== true) {
+            if (options.disableStack !== true)
                 for (const stackItem of event.stack) {
                     const traceData = TraceData.from(Buffer.from(stackItem.toString(16), 'hex'));
                     stack.push(traceData);
                 }
-            }
             const structLog = {
                 depth: event.depth + 1,
                 error: '',
@@ -206,9 +199,8 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
             };
             // The gas difference calculated for each step is indicative of gas consumed in
             // the previous step. Gas consumption in the final step will always be zero.
-            if (structLogs.length) {
+            if (structLogs.length)
                 structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
-            }
             if (options.disableStorage === true) {
                 // Add the struct log as is - nothing more to do.
                 structLogs.push(structLog);
@@ -216,12 +208,10 @@ const runTransaction = async (txJson, wrappedStates: Map<string, WrappedEVMAccou
             }
             else {
                 const { depth: eventDepth } = event;
-                if (currentDepth > eventDepth) {
+                if (currentDepth > eventDepth)
                     storageStack.pop();
-                }
-                else if (currentDepth < eventDepth) {
+                else if (currentDepth < eventDepth)
                     storageStack.push(new TraceStorageMap());
-                }
                 currentDepth = eventDepth;
                 switch (event.opcode.name) {
                     case 'SSTORE': {
@@ -287,9 +277,8 @@ const parseCommandLineArgs = (): {
         gasEstimate: false,
     };
     const fileName = args.filter((arg) => !arg.startsWith('-'));
-    if (fileName.length !== 1) {
+    if (fileName.length !== 1)
         process.exit(1);
-    }
     const file = fileName[0];
     const flags = args.filter((arg) => arg.startsWith('-'));
     for (let i = 0; i < flags.length; i++) {
@@ -312,10 +301,9 @@ const parseCommandLineArgs = (): {
 };
 const { file, options } = parseCommandLineArgs();
 ShardeumFlags.VerboseLogs = process.env.VERBOSE_LOGS === 'true';
-if (!file) {
+if (!file)
     process.exit(1);
-}
-else {
+else
     initEVMSingletons()
         .then(() => {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
@@ -334,4 +322,3 @@ else {
         console.error('Error', err);
         process.exit(1);
     });
-}

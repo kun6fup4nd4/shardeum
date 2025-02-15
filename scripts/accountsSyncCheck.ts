@@ -25,36 +25,30 @@ export async function runCreate(createStatement): Promise<void> {
 export async function run(sql, params = [] || {}): Promise<any> {
     return new Promise((resolve, reject) => {
         db.run(sql, params, function (err) {
-            if (err) {
+            if (err)
                 reject(err);
-            }
-            else {
+            else
                 resolve({ id: this.lastID });
-            }
         });
     });
 }
 export async function all(sql, params = []): Promise<any> {
     return new Promise((resolve, reject) => {
         db.all(sql, params, (err, rows) => {
-            if (err) {
+            if (err)
                 reject(err);
-            }
-            else {
+            else
                 resolve(rows);
-            }
         });
     });
 }
 export async function get(sql, params = []): Promise<any> {
     return new Promise((resolve, reject) => {
         db.get(sql, params, (err, result) => {
-            if (err) {
+            if (err)
                 reject(err);
-            }
-            else {
+            else
                 resolve(result);
-            }
         });
     });
 }
@@ -76,11 +70,10 @@ export const getAccountsDataFromConsensors = async (): Promise<any> => {
         const accounts = await queryAccountsFromConsensor();
         for (const account of accounts) {
             for (const acc of consensorAccounts) {
-                if (acc.accountId === account.accountId) {
+                if (acc.accountId === account.accountId)
                     if (acc.timestamp < account.timestamp) {
                         consensorAccounts.splice(consensorAccounts.indexOf(acc), 1);
                     }
-                }
             }
             if (!consensorAccounts.find((acc) => acc.accountId === account.accountId))
                 consensorAccounts.push(account);
@@ -110,12 +103,11 @@ export async function queryAccountsFromArchiver(skip = 0, limit = 10000): Promis
     try {
         const sql = `SELECT * FROM accounts ORDER BY cycleNumber ASC, timestamp ASC LIMIT ${limit} OFFSET ${skip}`;
         accounts = await all(sql);
-        if (accounts.lenth > 0) {
+        if (accounts.lenth > 0)
             accounts.map((account) => {
                 if (account && account.data)
                     account.data = Utils.safeJsonParse(account.data);
             });
-        }
     }
     catch (e) {
     }
@@ -141,9 +133,8 @@ const checkAccountsDataSync = async (): Promise<any> => {
     for (const account1 of consensorAccounts) {
         let found = false;
         for (const account2 of archiverAccounts) {
-            if (account1.accountId === account2.accountId) {
+            if (account1.accountId === account2.accountId)
                 found = true;
-            }
         }
         if (!found) {
         }
@@ -151,9 +142,8 @@ const checkAccountsDataSync = async (): Promise<any> => {
     for (const account1 of archiverAccounts) {
         let found = false;
         for (const account2 of consensorAccounts) {
-            if (account1.accountId === account2.accountId) {
+            if (account1.accountId === account2.accountId)
                 found = true;
-            }
         }
         if (!found) {
         }

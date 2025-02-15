@@ -16,9 +16,8 @@ import { SafeBalance } from '../utils/safeMath';
 import { verify } from '../setup/helpers';
 import { NetworkAccount } from '../types/NetworkAccount';
 export function isSetCertTimeTx(tx): boolean {
-    if (tx.isInternalTx && tx.internalTXType === InternalTXType.SetCertTime) {
+    if (tx.isInternalTx && tx.internalTXType === InternalTXType.SetCertTime)
         return true;
-    }
     return false;
 }
 export type setCertTimeTx = {
@@ -31,9 +30,8 @@ export type setCertTimeTx = {
 };
 export function getCertCycleDuration(): number {
     if (AccountsStorage.cachedNetworkAccount &&
-        AccountsStorage.cachedNetworkAccount.current.certCycleDuration !== null) {
+        AccountsStorage.cachedNetworkAccount.current.certCycleDuration !== null)
         return AccountsStorage.cachedNetworkAccount.current.certCycleDuration;
-    }
     return ShardeumFlags.certCycleDuration;
 }
 export async function injectSetCertTimeTx(shardus: Shardus, publicKey: string, activeNodes: ShardusTypes.ValidatorNodeDetails[]): Promise<InjectTxResponse> {
@@ -43,9 +41,8 @@ export async function injectSetCertTimeTx(shardus: Shardus, publicKey: string, a
         return accountQueryResponse;
     const nodeAccountQueryResponse = accountQueryResponse as NodeAccountQueryResponse;
     const nominator = nodeAccountQueryResponse.nodeAccount?.nominator;
-    if (!nominator) {
+    if (!nominator)
         return { success: false, reason: `Nominator for this node account ${publicKey} is not found!` };
-    }
     // TODO: I think we can add another validation here that checks that nominator stakeAmount has enough for minStakeRequired in the network
     // Inject the setCertTime Tx
     const randomConsensusNode: ShardusTypes.ValidatorNodeDetails = getRandom(activeNodes, 1)[0];
@@ -71,18 +68,14 @@ export function validateSetCertTimeTx(tx: SetCertTime): {
     // }
     if (!tx.nominee || tx.nominee.length !== 64)
         return { isValid: false, reason: 'Invalid nominee address' };
-    if (!isValidAddress(tx.nominator)) {
+    if (!isValidAddress(tx.nominator))
         return { isValid: false, reason: 'Invalid nominator address' };
-    }
-    if (tx.duration <= 0) {
+    if (tx.duration <= 0)
         return { isValid: false, reason: 'Duration in cert tx must be > 0' };
-    }
-    if (tx.duration > getCertCycleDuration()) {
+    if (tx.duration > getCertCycleDuration())
         return { isValid: false, reason: 'Duration in cert tx must be not greater than certCycleDuration' };
-    }
-    if (tx.timestamp <= 0) {
+    if (tx.timestamp <= 0)
         return { isValid: false, reason: 'Timestamp in cert tx must be > 0' };
-    }
     try {
         if (!verify(tx, tx.nominee))
             return { isValid: false, reason: 'Invalid signature for SetCertTime tx' };
@@ -99,57 +92,50 @@ export function validateSetCertTimeState(tx: SetCertTime, wrappedStates: Wrapped
     let committedStake = BigInt(0);
     let operatorEVMAccount: WrappedEVMAccount;
     const acct = wrappedStates[toShardusAddress(tx.nominator, AccountType.Account)].data;
-    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(acct)) {
+    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(acct))
         operatorEVMAccount = acct;
-    }
     fixDeserializedWrappedEVMAccount(operatorEVMAccount);
-    if (operatorEVMAccount == undefined) {
+    if (operatorEVMAccount == undefined)
         if (ShardeumFlags.fixCertExpTiming)
             return {
                 result: 'fail',
                 reason: `Found no wrapped state for operator account ${tx.nominator}`,
             };
-    }
-    else {
-        if (operatorEVMAccount && operatorEVMAccount.operatorAccountInfo) {
-            try {
-                committedStake = _base16BNParser(operatorEVMAccount.operatorAccountInfo.stake);
-            }
-            catch (er) {
-                return {
-                    result: 'fail',
-                    reason: `stake failed to parse: ${Utils.safeStringify(operatorEVMAccount.operatorAccountInfo.stake)} er:${er.message}`,
-                };
-            }
+    else if (operatorEVMAccount && operatorEVMAccount.operatorAccountInfo) {
+        try {
+            committedStake = _base16BNParser(operatorEVMAccount.operatorAccountInfo.stake);
         }
-        else if (operatorEVMAccount && operatorEVMAccount.operatorAccountInfo == null) {
+        catch (er) {
             return {
                 result: 'fail',
-                reason: `Operator account info is null: ${Utils.safeStringify(operatorEVMAccount)}`,
+                reason: `stake failed to parse: ${Utils.safeStringify(operatorEVMAccount.operatorAccountInfo.stake)} er:${er.message}`,
             };
         }
     }
+    else if (operatorEVMAccount && operatorEVMAccount.operatorAccountInfo == null) {
+        return {
+            result: 'fail',
+            reason: `Operator account info is null: ${Utils.safeStringify(operatorEVMAccount)}`,
+        };
+    }
     let network: NetworkAccount;
     // eslint-disable-next-line security/detect-object-injection
-    if (wrappedStates[networkAccount]?.data && isNetworkAccount(wrappedStates[networkAccount].data)) {
+    if (wrappedStates[networkAccount]?.data && isNetworkAccount(wrappedStates[networkAccount].data))
         // eslint-disable-next-line security/detect-object-injection
         network = wrappedStates[networkAccount].data as NetworkAccount;
-    }
-    if (network == null) {
+    if (network == null)
         return {
             result: 'fail',
             reason: `Network account is null`,
         };
-    }
     const minStakeRequiredUsd = network.current.stakeRequiredUsd;
     const minStakeRequired = scaleByStabilityFactor(minStakeRequiredUsd, network);
     // validate operator stake
-    if (committedStake < minStakeRequired) {
+    if (committedStake < minStakeRequired)
         return {
             result: 'fail',
             reason: 'Operator has not staked the required amount',
         };
-    }
     return { result: 'pass', reason: 'valid' };
 }
 export function applySetCertTimeTx(shardus, tx: SetCertTime, wrappedStates: WrappedStates, txId: string, txTimestamp: number, applyResponse: ShardusTypes.ApplyResponse): void {
@@ -164,9 +150,8 @@ export function applySetCertTimeTx(shardus, tx: SetCertTime, wrappedStates: Wrap
     }
     let operatorEVMAccount: WrappedEVMAccount;
     const acct = wrappedStates[toShardusAddress(tx.nominator, AccountType.Account)].data;
-    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(acct)) {
+    if (WrappedEVMAccountFunctions.isWrappedEVMAccount(acct))
         operatorEVMAccount = acct;
-    }
     operatorEVMAccount.timestamp = txTimestamp;
     fixDeserializedWrappedEVMAccount(operatorEVMAccount);
     // Update state
@@ -176,19 +161,16 @@ export function applySetCertTimeTx(shardus, tx: SetCertTime, wrappedStates: Wrap
     if (certExp > 0) {
         const certStartTimestamp = certExp - getCertCycleDuration() * ONE_SECOND * serverConfig.p2p.cycleDuration;
         let expiredPercentage: number;
-        if (ShardeumFlags.fixSetCertTimeTxApply === true) {
+        if (ShardeumFlags.fixSetCertTimeTxApply === true)
             //use tx timestampe for a deterministic result
             expiredPercentage = (txTimestamp - certStartTimestamp) / (certExp - certStartTimestamp);
-        }
-        else {
+        else
             //old way
             expiredPercentage = (shardeumGetTime() - certStartTimestamp) / (certExp - certStartTimestamp);
-        }
-        if (expiredPercentage >= (ShardeumFlags.fixCertExpTiming ? 0.5 : 0.8)) {
+        if (expiredPercentage >= (ShardeumFlags.fixCertExpTiming ? 0.5 : 0.8))
             // don't charge gas after 50% of the cert has
             // expired
             shouldChargeTxFee = false;
-        }
         else {
         }
     }
@@ -198,18 +180,16 @@ export function applySetCertTimeTx(shardus, tx: SetCertTime, wrappedStates: Wrap
     // as they are not aware of the global network setting
     // ...but in the future we should perhaps do a trustless get of the network object for standby nodes
     //    in case there are other settings that are important to know
-    if (ShardeumFlags.setCertTimeDurationOverride) {
+    if (ShardeumFlags.setCertTimeDurationOverride)
         duration = getCertCycleDuration();
-    }
     // update operator cert expiration
     operatorEVMAccount.operatorAccountInfo.certExp =
         txTimestamp + serverConfig.p2p.cycleDuration * ONE_SECOND * duration;
     let network: NetworkAccount;
     // eslint-disable-next-line security/detect-object-injection
-    if (wrappedStates[networkAccount]?.data && isNetworkAccount(wrappedStates[networkAccount].data)) {
+    if (wrappedStates[networkAccount]?.data && isNetworkAccount(wrappedStates[networkAccount].data))
         // eslint-disable-next-line security/detect-object-injection
         network = wrappedStates[networkAccount].data as NetworkAccount;
-    }
     let amountSpent = bigIntToHex(BigInt(0));
     if (shouldChargeTxFee) {
         const costTxFee = scaleByStabilityFactor(BigInt(ShardeumFlags.constantTxFeeUsd), network);
@@ -221,7 +201,6 @@ export function applySetCertTimeTx(shardus, tx: SetCertTime, wrappedStates: Wrap
         const wrappedChangedAccount = WrappedEVMAccountFunctions._shardusWrappedAccount(operatorEVMAccount);
         shardus.applyResponseAddChangedAccount(applyResponse, wrappedChangedAccount.accountId, wrappedChangedAccount, txId, txTimestamp);
     }
-    if (ShardeumFlags.supportInternalTxReceipt) {
+    if (ShardeumFlags.supportInternalTxReceipt)
         createInternalTxReceipt(shardus, applyResponse, tx, tx.nominee, tx.nominator, txTimestamp, txId, amountSpent);
-    }
 }

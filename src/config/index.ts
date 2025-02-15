@@ -323,9 +323,8 @@ if (process.env.LOAD_JSON_CONFIGS) {
                 const fileConfig = Utils.safeJsonParse(fs.readFileSync(path.join(process.cwd(), '..', configs[i])).toString());
                 config = merge(config, fileConfig, { arrayMerge: overwriteMerge });
             }
-            else {
+            else
                 throw new Error('path to the following file is incorrect:' + configs[i]);
-            }
         }
         catch (e) {
             throw new Error('error loading config file: ' + e);
@@ -337,14 +336,13 @@ if (process.env.BASE_DIR) {
     const baseDir = process.env.BASE_DIR || '.';
     let baseDirFileConfig = {};
     // eslint-disable-next-line security/detect-non-literal-fs-filename
-    if (fs.existsSync(path.join(baseDir, FilePaths.CONFIG))) {
+    if (fs.existsSync(path.join(baseDir, FilePaths.CONFIG)))
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         baseDirFileConfig = Utils.safeJsonParse(fs.readFileSync(path.join(baseDir, FilePaths.CONFIG)).toString());
-    }
     config = merge(config, baseDirFileConfig, { arrayMerge: overwriteMerge });
     config.server.baseDir = process.env.BASE_DIR;
 }
-if (process.env.APP_SEEDLIST) {
+if (process.env.APP_SEEDLIST)
     config = merge(config, {
         server: {
             p2p: {
@@ -359,11 +357,10 @@ if (process.env.APP_SEEDLIST) {
             },
         },
     }, { arrayMerge: overwriteMerge });
-}
 // EXISTING_ARCHIVERS env has to be passed in string format!
 if (process.env.EXISTING_ARCHIVERS) {
     const existingArchivers = Utils.safeJsonParse(process.env.EXISTING_ARCHIVERS);
-    if (existingArchivers.length > 0) {
+    if (existingArchivers.length > 0)
         config = merge(config, {
             server: {
                 p2p: {
@@ -371,9 +368,8 @@ if (process.env.EXISTING_ARCHIVERS) {
                 },
             },
         }, { arrayMerge: overwriteMerge });
-    }
 }
-if (process.env.APP_MONITOR) {
+if (process.env.APP_MONITOR)
     config = merge(config, {
         server: {
             reporting: {
@@ -381,8 +377,7 @@ if (process.env.APP_MONITOR) {
             },
         },
     }, { arrayMerge: overwriteMerge });
-}
-if (process.env.APP_IP) {
+if (process.env.APP_IP)
     config = merge(config, {
         server: {
             ip: {
@@ -391,7 +386,6 @@ if (process.env.APP_IP) {
             },
         },
     }, { arrayMerge: overwriteMerge });
-}
 config = merge(config, {
     server: {
         p2p: {

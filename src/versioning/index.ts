@@ -22,7 +22,7 @@ export const onActiveVersionChange = async (newActiveVersion: string) => {
             migrate: Migrate;
         }; // eslint-disable-line no-unsanitized/method
         const needsMigration = !appliedMigrations.has(migrationVersion) && isEqualOrNewerVersion(migrationVersion, newActiveVersion);
-        if (needsMigration) {
+        if (needsMigration)
             try {
                 await migrate();
             }
@@ -31,6 +31,5 @@ export const onActiveVersionChange = async (newActiveVersion: string) => {
             finally {
                 appliedMigrations.add(migrationVersion);
             }
-        }
     }
 };

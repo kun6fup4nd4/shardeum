@@ -30,15 +30,13 @@ export class AccountCache extends Cache {
     _diffCache: Map<string, AccountCacheElement | undefined>[] = [];
     constructor(opts: CacheOpts) {
         super();
-        if (opts.type === CacheType.LRU) {
+        if (opts.type === CacheType.LRU)
             this._lruCache = new LRUCache({
                 max: opts.size,
                 updateAgeOnGet: true,
             });
-        }
-        else {
+        else
             this._orderedMapCache = new OrderedMap();
-        }
         this._diffCache.push(new Map<string, AccountCacheElement | undefined>());
         this._debug = createDebugLogger('statemanager:cache:account');
     }
@@ -46,12 +44,10 @@ export class AccountCache extends Cache {
         const it = this._diffCache[this._checkpoints].get(cacheKeyHex);
         if (it === undefined) {
             let oldElem: AccountCacheElement | undefined;
-            if (this._lruCache) {
+            if (this._lruCache)
                 oldElem = this._lruCache!.get(cacheKeyHex);
-            }
-            else {
+            else
                 oldElem = this._orderedMapCache!.getElementByKey(cacheKeyHex);
-            }
             this._diffCache[this._checkpoints].set(cacheKeyHex, oldElem);
         }
     }
@@ -66,15 +62,12 @@ export class AccountCache extends Cache {
         const elem = {
             accountRLP: account !== undefined ? account.serialize() : undefined,
         };
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Put account ${addressHex}`);
-        }
-        if (this._lruCache) {
+        if (this._lruCache)
             this._lruCache!.set(addressHex, elem);
-        }
-        else {
+        else
             this._orderedMapCache!.setElement(addressHex, elem);
-        }
         this._stats.writes += 1;
     }
     /**
@@ -83,20 +76,16 @@ export class AccountCache extends Cache {
      */
     get(address: Address): AccountCacheElement | undefined {
         const addressHex = bytesToUnprefixedHex(address.bytes);
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Get account ${addressHex}`);
-        }
         let elem: AccountCacheElement | undefined;
-        if (this._lruCache) {
+        if (this._lruCache)
             elem = this._lruCache!.get(addressHex);
-        }
-        else {
+        else
             elem = this._orderedMapCache!.getElementByKey(addressHex);
-        }
         this._stats.reads += 1;
-        if (elem) {
+        if (elem)
             this._stats.hits += 1;
-        }
         return elem;
     }
     /**
@@ -106,19 +95,16 @@ export class AccountCache extends Cache {
     del(address: Address): void {
         const addressHex = bytesToUnprefixedHex(address.bytes);
         this._saveCachePreState(addressHex);
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Delete account ${addressHex}`);
-        }
-        if (this._lruCache) {
+        if (this._lruCache)
             this._lruCache!.set(addressHex, {
                 accountRLP: undefined,
             });
-        }
-        else {
+        else
             this._orderedMapCache!.setElement(addressHex, {
                 accountRLP: undefined,
             });
-        }
         this._stats.dels += 1;
     }
     /**
@@ -129,9 +115,8 @@ export class AccountCache extends Cache {
         string,
         AccountCacheElement
     ][] {
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Flushing cache on checkpoint ${this._checkpoints}`);
-        }
         const diffMap = this._diffCache[this._checkpoints]!;
         const items: [
             string,
@@ -140,15 +125,12 @@ export class AccountCache extends Cache {
         for (const entry of diffMap.entries()) {
             const cacheKeyHex = entry[0];
             let elem: AccountCacheElement | undefined;
-            if (this._lruCache) {
+            if (this._lruCache)
                 elem = this._lruCache!.get(cacheKeyHex);
-            }
-            else {
+            else
                 elem = this._orderedMapCache!.getElementByKey(cacheKeyHex);
-            }
-            if (elem !== undefined) {
+            if (elem !== undefined)
                 items.push([cacheKeyHex, elem]);
-            }
         }
         this._diffCache[this._checkpoints] = new Map<string, AccountCacheElement | undefined>();
         return items;
@@ -158,28 +140,24 @@ export class AccountCache extends Cache {
      */
     revert(): void {
         this._checkpoints -= 1;
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Revert to checkpoint ${this._checkpoints}`);
-        }
         const diffMap = this._diffCache.pop()!;
         for (const entry of diffMap.entries()) {
             const addressHex = entry[0];
             const elem = entry[1];
-            if (elem === undefined) {
+            if (elem === undefined)
                 if (this._lruCache) {
                     this._lruCache!.delete(addressHex);
                 }
                 else {
                     this._orderedMapCache!.eraseElementByKey(addressHex);
                 }
+            else if (this._lruCache) {
+                this._lruCache!.set(addressHex, elem);
             }
             else {
-                if (this._lruCache) {
-                    this._lruCache!.set(addressHex, elem);
-                }
-                else {
-                    this._orderedMapCache!.setElement(addressHex, elem);
-                }
+                this._orderedMapCache!.setElement(addressHex, elem);
             }
         }
     }
@@ -188,9 +166,8 @@ export class AccountCache extends Cache {
      */
     commit(): void {
         this._checkpoints -= 1;
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Commit to checkpoint ${this._checkpoints}`);
-        }
         const diffMap = this._diffCache.pop()!;
         for (const entry of diffMap.entries()) {
             const addressHex = entry[0];
@@ -207,9 +184,8 @@ export class AccountCache extends Cache {
      */
     checkpoint(): void {
         this._checkpoints += 1;
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`New checkpoint ${this._checkpoints}`);
-        }
         this._diffCache.push(new Map<string, AccountCacheElement | undefined>());
     }
     /**
@@ -217,12 +193,10 @@ export class AccountCache extends Cache {
      * @returns
      */
     size(): number {
-        if (this._lruCache) {
+        if (this._lruCache)
             return this._lruCache!.size;
-        }
-        else {
+        else
             return this._orderedMapCache!.size();
-        }
     }
     /**
      * Returns a dict with cache stats
@@ -237,7 +211,7 @@ export class AccountCache extends Cache {
     } {
         const stats = { ...this._stats };
         stats.size = this.size();
-        if (reset) {
+        if (reset)
             this._stats = {
                 size: 0,
                 reads: 0,
@@ -245,21 +219,17 @@ export class AccountCache extends Cache {
                 writes: 0,
                 dels: 0,
             };
-        }
         return stats;
     }
     /**
      * Clears cache.
      */
     clear(): void {
-        if (this.DEBUG) {
+        if (this.DEBUG)
             this._debug(`Clear cache`);
-        }
-        if (this._lruCache) {
+        if (this._lruCache)
             this._lruCache!.clear();
-        }
-        else {
+        else
             this._orderedMapCache!.clear();
-        }
     }
 }

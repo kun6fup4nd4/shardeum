@@ -6,9 +6,8 @@ import { logFlags } from '../..';
 export function getPenaltyForViolation(tx: PenaltyTX, stakeLock: bigint): bigint {
     //can remove this will crash part after fix confirmed
     let willCrash = false;
-    if (typeof stakeLock !== 'bigint') {
+    if (typeof stakeLock !== 'bigint')
         willCrash = true;
-    }
     //make sure we are dealing with a bigint
     stakeLock = _base16BNParser(stakeLock);
     // Check if stakeLock is not a BigInt, should never happen again due to the above fix

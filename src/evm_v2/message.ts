@@ -85,18 +85,16 @@ export class Message {
         this.authcallOrigin = opts.authcallOrigin;
         this.gasRefund = opts.gasRefund ?? defaults.gasRefund;
         this.versionedHashes = opts.versionedHashes;
-        if (this.value < 0) {
+        if (this.value < 0)
             throw new Error(`value field cannot be negative, received ${this.value}`);
-        }
     }
     /**
      * Note: should only be called in instances where `_codeAddress` or `to` is defined.
      */
     get codeAddress(): Address {
         const codeAddress = this._codeAddress ?? this.to;
-        if (!codeAddress) {
+        if (!codeAddress)
             throw new Error('Missing codeAddress');
-        }
         return codeAddress;
     }
 }

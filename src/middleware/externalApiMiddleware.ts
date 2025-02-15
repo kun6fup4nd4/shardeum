@@ -4,18 +4,15 @@ export const getExternalApiMiddleware = (): Handler => {
     return (req, res, next) => {
         const { path, method } = req;
         let isAllowed = true; // Default to true
-        if (ShardeumFlags.startInServiceMode && Array.isArray(ShardeumFlags.allowedEndpointsInServiceMode)) {
+        if (ShardeumFlags.startInServiceMode && Array.isArray(ShardeumFlags.allowedEndpointsInServiceMode))
             isAllowed = checkIfRequestIsAllowed(path, method, ShardeumFlags.allowedEndpointsInServiceMode);
-        }
-        if (isAllowed) {
+        if (isAllowed)
             next();
-        }
-        else {
+        else
             return res.status(403).json({
                 status: 403,
                 message: 'FORBIDDEN. This endpoint and method are not allowed in Service mode.',
             });
-        }
     };
 };
 function checkIfRequestIsAllowed(requestPath, requestMethod, allowedEndpoints): boolean {

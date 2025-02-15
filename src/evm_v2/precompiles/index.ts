@@ -138,21 +138,18 @@ type AddPrecompile = {
 type CustomPrecompile = AddPrecompile | DeletePrecompile;
 function getActivePrecompiles(common: Common, customPrecompiles?: CustomPrecompile[]): Map<string, PrecompileFunc> {
     const precompileMap = new Map();
-    if (customPrecompiles) {
+    if (customPrecompiles)
         for (const precompile of customPrecompiles) {
             precompileMap.set(bytesToUnprefixedHex(precompile.address.bytes), 'function' in precompile ? precompile.function : undefined);
         }
-    }
     for (const entry of precompileEntries) {
-        if (precompileMap.has(entry.address)) {
+        if (precompileMap.has(entry.address))
             continue;
-        }
         const type = entry.check.type;
         if ((type === PrecompileAvailabilityCheck.Hardfork && common.gteHardfork(entry.check.param)) ||
             (entry.check.type === PrecompileAvailabilityCheck.EIP &&
-                common.isActivatedEIP(entry.check.param))) {
+                common.isActivatedEIP(entry.check.param)))
             precompileMap.set(entry.address, entry.precompile);
-        }
     }
     return precompileMap;
 }

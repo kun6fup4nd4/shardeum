@@ -148,49 +148,42 @@ export class Interpreter {
         };
     }
     async run(code: Uint8Array, opts: InterpreterOpts = {}): Promise<InterpreterResult> {
-        if (!this.common.isActivatedEIP(3540) || code[0] !== EOF.FORMAT) {
+        if (!this.common.isActivatedEIP(3540) || code[0] !== EOF.FORMAT)
             // EIP-3540 isn't active and first byte is not 0xEF - treat as legacy bytecode
             this._runState.code = code;
-        }
         else if (this.common.isActivatedEIP(3540)) {
-            if (code[1] !== EOF.MAGIC) {
+            if (code[1] !== EOF.MAGIC)
                 // Bytecode contains invalid EOF magic byte
                 return {
                     runState: this._runState,
                     exceptionError: new EvmError(ERROR.INVALID_BYTECODE_RESULT),
                 };
-            }
-            if (code[2] !== EOF.VERSION) {
+            if (code[2] !== EOF.VERSION)
                 // Bytecode contains invalid EOF version number
                 return {
                     runState: this._runState,
                     exceptionError: new EvmError(ERROR.INVALID_EOF_FORMAT),
                 };
-            }
             // Code is EOF1 format
             const codeSections = EOF.codeAnalysis(code);
-            if (!codeSections) {
+            if (!codeSections)
                 // Code is invalid EOF1 format if `codeSections` is falsy
                 return {
                     runState: this._runState,
                     exceptionError: new EvmError(ERROR.INVALID_EOF_FORMAT),
                 };
-            }
-            if (codeSections.data) {
+            if (codeSections.data)
                 // Set code to EOF container code section which starts at byte position 10 if data section is present
                 this._runState.code = code.subarray(10, 10 + codeSections!.code);
-            }
-            else {
+            else
                 // Set code to EOF container code section which starts at byte position 7 if no data section is present
                 this._runState.code = code.subarray(7, 7 + codeSections!.code);
-            }
         }
         this._runState.programCounter = opts.pc ?? this._runState.programCounter;
         // Check that the programCounter is in range
         const pc = this._runState.programCounter;
-        if (pc !== 0 && (pc < 0 || pc >= this._runState.code.length)) {
+        if (pc !== 0 && (pc < 0 || pc >= this._runState.code.length))
             throw new Error('Internal error: program counter not in range');
-        }
         let err;
         // Iterate through the given ops until something breaks or we hit STOP
         while (this._runState.programCounter < this._runState.code.length) {
@@ -207,13 +200,11 @@ export class Interpreter {
             }
             catch (e: any) {
                 // re-throw on non-VM errors
-                if (!('errorType' in e && e.errorType === 'EvmError')) {
+                if (!('errorType' in e && e.errorType === 'EvmError'))
                     throw e;
-                }
                 // STOP is not an exception
-                if (e.error !== ERROR.STOP) {
+                if (e.error !== ERROR.STOP)
                     err = e;
-                }
                 break;
             }
         }
@@ -238,27 +229,23 @@ export class Interpreter {
             // It needs the base fee, for correct gas limit calculation for the CALL opcodes
             gas = await dynamicGasHandler(this._runState, gas, this.common);
         }
-        if (this._evm.events.listenerCount('step') > 0 || this._evm.DEBUG) {
+        if (this._evm.events.listenerCount('step') > 0 || this._evm.DEBUG)
             // Only run this stepHook function if there is an event listener (e.g. test runner)
             // or if the vm is running in debug mode (to display opcode debug logs)
             await this._runStepHook(gas, gasLimitClone);
-        }
         // Check for invalid opcode
-        if (opInfo.name === 'INVALID') {
+        if (opInfo.name === 'INVALID')
             throw new EvmError(ERROR.INVALID_OPCODE);
-        }
         // Reduce opcode's base fee
         this.useGas(gas, `${opInfo.name} fee`);
         // Advance program counter
         this._runState.programCounter++;
         // Execute opcode handler
         const opFn = this.getOpHandler(opInfo);
-        if (opInfo.isAsync) {
+        if (opInfo.isAsync)
             await (opFn as AsyncOpHandler).apply(null, [this._runState, this.common]);
-        }
-        else {
+        else
             opFn.apply(null, [this._runState, this.common]);
-        }
     }
     /**
      * Get the handler function for an opcode.
@@ -310,9 +297,8 @@ export class Interpreter {
                 stack: hexStack,
                 depth: eventObj.depth,
             };
-            if (!(name in this.opDebuggers)) {
+            if (!(name in this.opDebuggers))
                 this.opDebuggers[name] = createDebugLogger(`evm:ops:${name}`);
-            }
             this.opDebuggers[name](Utils.safeStringify(opTrace));
         }
         /**
@@ -346,7 +332,7 @@ export class Interpreter {
         for (let i = 0; i < code.length; i++) {
             const opcode = code[i];
             // skip over PUSH0-32 since no jump destinations in the middle of a push block
-            if (opcode <= 0x7f) {
+            if (opcode <= 0x7f)
                 if (opcode >= 0x60) {
                     i += opcode - 0x5f;
                 }
@@ -358,7 +344,6 @@ export class Interpreter {
                     // Define a BEGINSUB as a 2 in the valid jumps array
                     jumps[i] = 2;
                 }
-            }
         }
         return jumps;
     }
@@ -370,9 +355,8 @@ export class Interpreter {
      */
     useGas(amount: bigint, context?: string): void {
         this._runState.gasLeft -= amount;
-        if (this._evm.DEBUG) {
+        if (this._evm.DEBUG)
             debugGas(`${typeof context === 'string' ? context + ': ' : ''}used ${amount} gas (-> ${this._runState.gasLeft})`);
-        }
         if (this._runState.gasLeft < BigInt(0)) {
             this._runState.gasLeft = BigInt(0);
             trap(ERROR.OUT_OF_GAS);
@@ -384,9 +368,8 @@ export class Interpreter {
      * @param context - Usage context for debugging
      */
     refundGas(amount: bigint, context?: string): void {
-        if (this._evm.DEBUG) {
+        if (this._evm.DEBUG)
             debugGas(`${typeof context === 'string' ? context + ': ' : ''}refund ${amount} gas (-> ${this._runState.gasRefund})`);
-        }
         this._runState.gasRefund += amount;
     }
     /**
@@ -395,9 +378,8 @@ export class Interpreter {
      * @param context - Usage context for debugging
      */
     subRefund(amount: bigint, context?: string): void {
-        if (this._evm.DEBUG) {
+        if (this._evm.DEBUG)
             debugGas(`${typeof context === 'string' ? context + ': ' : ''}sub gas refund ${amount} (-> ${this._runState.gasRefund})`);
-        }
         this._runState.gasRefund -= amount;
         if (this._runState.gasRefund < BigInt(0)) {
             this._runState.gasRefund = BigInt(0);
@@ -409,9 +391,8 @@ export class Interpreter {
      * @param amount - Amount to add
      */
     addStipend(amount: bigint): void {
-        if (this._evm.DEBUG) {
+        if (this._evm.DEBUG)
             debugGas(`add stipend ${amount} (-> ${this._runState.gasLeft})`);
-        }
         this._runState.gasLeft += amount;
     }
     /**
@@ -420,13 +401,11 @@ export class Interpreter {
      */
     async getExternalBalance(address: Address): Promise<bigint> {
         // shortcut if current account
-        if (address.equals(this._env.address)) {
+        if (address.equals(this._env.address))
             return this._env.contract.balance;
-        }
         let account = await this._stateManager.getAccount(address);
-        if (!account) {
+        if (!account)
             account = new Account();
-        }
         return account.balance;
     }
     /**
@@ -435,9 +414,8 @@ export class Interpreter {
     async storageStore(key: Uint8Array, value: Uint8Array): Promise<void> {
         await this._stateManager.putContractStorage(this._env.address, key, value);
         const account = await this._stateManager.getAccount(this._env.address);
-        if (!account) {
+        if (!account)
             throw new Error('could not read account while persisting memory');
-        }
         this._env.contract = account;
     }
     /**
@@ -446,12 +424,10 @@ export class Interpreter {
      * @param original - If true, return the original storage value (default: false)
      */
     async storageLoad(key: Uint8Array, original = false): Promise<Uint8Array> {
-        if (original) {
+        if (original)
             return this._stateManager.originalStorageCache.get(this._env.address, key);
-        }
-        else {
+        else
             return this._stateManager.getContractStorage(this._env.address, key);
-        }
     }
     /**
      * Store 256-bit a value in memory to transient storage.
@@ -592,12 +568,10 @@ export class Interpreter {
      */
     getBlockCoinbase(): bigint {
         let coinbase: Address;
-        if (this.common.consensusAlgorithm() === ConsensusAlgorithm.Clique) {
+        if (this.common.consensusAlgorithm() === ConsensusAlgorithm.Clique)
             coinbase = this._env.block.header.cliqueSigner();
-        }
-        else {
+        else
             coinbase = this._env.block.header.coinbase;
-        }
         return bytesToBigInt(coinbase.toBytes());
     }
     /**
@@ -629,10 +603,9 @@ export class Interpreter {
      */
     getBlockBaseFee(): bigint {
         const baseFee = this._env.block.header.baseFeePerGas;
-        if (baseFee === undefined) {
+        if (baseFee === undefined)
             // Sanity check
             throw new Error('Block has no Base Fee');
-        }
         return baseFee;
     }
     /**
@@ -744,36 +717,31 @@ export class Interpreter {
         this._runState.returnBytes = new Uint8Array(0);
         // Check if account has enough ether and max depth not exceeded
         if (this._env.depth >= Number(this.common.param('vm', 'stackLimit')) ||
-            (msg.delegatecall !== true && this._env.contract.balance < msg.value)) {
+            (msg.delegatecall !== true && this._env.contract.balance < msg.value))
             return BigInt(0);
-        }
         const results = await this._evm.runCall({ message: msg });
-        if (results.execResult.logs) {
+        if (results.execResult.logs)
             this._result.logs = this._result.logs.concat(results.execResult.logs);
-        }
         // this should always be safe
         this.useGas(results.execResult.executionGasUsed, 'CALL, STATICCALL, DELEGATECALL, CALLCODE');
         // Set return value
         if (results.execResult.returnValue !== undefined &&
             (!results.execResult.exceptionError ||
-                results.execResult.exceptionError.error === ERROR.REVERT)) {
+                results.execResult.exceptionError.error === ERROR.REVERT))
             this._runState.returnBytes = results.execResult.returnValue;
-        }
         if (!results.execResult.exceptionError) {
             for (const addressToSelfdestructHex of selfdestruct) {
                 this._result.selfdestruct.add(addressToSelfdestructHex);
             }
-            if (this.common.isActivatedEIP(6780)) {
+            if (this.common.isActivatedEIP(6780))
                 // copy over the items to result via iterator
                 for (const item of createdAddresses!) {
                     this._result.createdAddresses!.add(item);
                 }
-            }
             // update stateRoot on current contract
             const account = await this._stateManager.getAccount(this._env.address);
-            if (!account) {
+            if (!account)
                 throw new Error('could not read contract account');
-            }
             this._env.contract = account;
             this._runState.gasRefund = results.execResult.gasRefund ?? BigInt(0);
         }
@@ -790,21 +758,18 @@ export class Interpreter {
         this._runState.returnBytes = new Uint8Array(0);
         // Check if account has enough ether and max depth not exceeded
         if (this._env.depth >= Number(this.common.param('vm', 'stackLimit')) ||
-            this._env.contract.balance < value) {
+            this._env.contract.balance < value)
             return BigInt(0);
-        }
         // EIP-2681 check
-        if (this._env.contract.nonce >= MAX_UINT64) {
+        if (this._env.contract.nonce >= MAX_UINT64)
             return BigInt(0);
-        }
         this._env.contract.nonce += BigInt(1);
         await this.journal.putAccount(this._env.address, this._env.contract);
-        if (this.common.isActivatedEIP(3860)) {
+        if (this.common.isActivatedEIP(3860))
             if (data.length > Number(this.common.param('vm', 'maxInitCodeSize')) &&
                 this._evm.allowUnlimitedInitCodeSize === false) {
                 return BigInt(0);
             }
-        }
         const message = new Message({
             caller,
             gasLimit,
@@ -822,38 +787,33 @@ export class Interpreter {
             message.createdAddresses = createdAddresses;
         }
         const results = await this._evm.runCall({ message });
-        if (results.execResult.logs) {
+        if (results.execResult.logs)
             this._result.logs = this._result.logs.concat(results.execResult.logs);
-        }
         // this should always be safe
         this.useGas(results.execResult.executionGasUsed, 'CREATE');
         // Set return buffer in case revert happened
         if (results.execResult.exceptionError &&
-            results.execResult.exceptionError.error === ERROR.REVERT) {
+            results.execResult.exceptionError.error === ERROR.REVERT)
             this._runState.returnBytes = results.execResult.returnValue;
-        }
         if (!results.execResult.exceptionError ||
             results.execResult.exceptionError.error === ERROR.CODESTORE_OUT_OF_GAS) {
             for (const addressToSelfdestructHex of selfdestruct) {
                 this._result.selfdestruct.add(addressToSelfdestructHex);
             }
-            if (this.common.isActivatedEIP(6780)) {
+            if (this.common.isActivatedEIP(6780))
                 // copy over the items to result via iterator
                 for (const item of createdAddresses!) {
                     this._result.createdAddresses!.add(item);
                 }
-            }
             // update stateRoot on current contract
             const account = await this._stateManager.getAccount(this._env.address);
-            if (!account) {
+            if (!account)
                 throw new Error('could not read contract account');
-            }
             this._env.contract = account;
             this._runState.gasRefund = results.execResult.gasRefund ?? BigInt(0);
-            if (results.createdAddress) {
+            if (results.createdAddress)
                 // push the created address to the stack
                 return bytesToBigInt(results.createdAddress.bytes);
-            }
         }
         return this._getReturnCode(results);
     }
@@ -875,17 +835,15 @@ export class Interpreter {
     }
     async _selfDestruct(toAddress: Address): Promise<void> {
         // only add to refund if this is the first selfdestruct for the address
-        if (!this._result.selfdestruct.has(bytesToHex(this._env.address.bytes))) {
+        if (!this._result.selfdestruct.has(bytesToHex(this._env.address.bytes)))
             this.refundGas(this.common.param('gasPrices', 'selfdestructRefund'));
-        }
         this._result.selfdestruct.add(bytesToHex(this._env.address.bytes));
         const toSelf = equalsBytes(toAddress.bytes, this._env.address.bytes);
         // Add to beneficiary balance
         if (!toSelf) {
             let toAccount = await this._stateManager.getAccount(toAddress);
-            if (!toAccount) {
+            if (!toAccount)
                 toAccount = new Account();
-            }
             toAccount.balance += this._env.contract.balance;
             await this.journal.putAccount(toAddress, toAccount);
         }
@@ -897,38 +855,32 @@ export class Interpreter {
             // (i.e. burn the ETH in current account)
             doModify = this._env.createdAddresses!.has(this._env.address.toString());
             // If contract is not being created in this tx...
-            if (!doModify) {
+            if (!doModify)
                 // Check if ETH being sent to another account (thus set balance to 0)
                 doModify = !toSelf;
-            }
         }
         // Set contract balance to 0
-        if (doModify) {
+        if (doModify)
             await this._stateManager.modifyAccountFields(this._env.address, {
                 balance: BigInt(0),
             });
-        }
         trap(ERROR.STOP);
     }
     /**
      * Creates a new log in the current environment.
      */
     log(data: Uint8Array, numberOfTopics: number, topics: Uint8Array[]): void {
-        if (numberOfTopics < 0 || numberOfTopics > 4) {
+        if (numberOfTopics < 0 || numberOfTopics > 4)
             trap(ERROR.OUT_OF_RANGE);
-        }
-        if (topics.length !== numberOfTopics) {
+        if (topics.length !== numberOfTopics)
             trap(ERROR.INTERNAL_ERROR);
-        }
         const log: Log = [this._env.address.bytes, topics, data];
         this._result.logs.push(log);
     }
     private _getReturnCode(results: EVMResult): bigint {
-        if (results.execResult.exceptionError) {
+        if (results.execResult.exceptionError)
             return BigInt(0);
-        }
-        else {
+        else
             return BigInt(1);
-        }
     }
 }

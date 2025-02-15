@@ -14,9 +14,8 @@ export const oneSHM = BigInt(10) ** BigInt(18);
 function wrapTransaction(transaction: LegacyTransaction, impl: () => Address): LegacyTransaction {
     return new Proxy(transaction, {
         get: function (target, prop, receiver): any {
-            if (prop === 'getSenderAddress') {
+            if (prop === 'getSenderAddress')
                 return impl;
-            }
             return Reflect.get(target, prop, receiver);
         },
     });
@@ -37,15 +36,12 @@ export async function estimateGas(txData, preRunTxState: ShardeumState, wrappedS
             address = Address.fromString(wrappedEVMAccount.contractAddress);
         else
             address = Address.fromString(wrappedEVMAccount.ethAddress);
-        if (wrappedEVMAccount.accountType === AccountType.Account) {
+        if (wrappedEVMAccount.accountType === AccountType.Account)
             preRunTxState._transactionState.insertFirstAccountReads(address, wrappedEVMAccount.account);
-        }
-        else if (wrappedEVMAccount.accountType === AccountType.ContractCode) {
+        else if (wrappedEVMAccount.accountType === AccountType.ContractCode)
             preRunTxState._transactionState.insertFirstContractBytesReads(address, wrappedEVMAccount.codeByte);
-        }
-        else if (wrappedEVMAccount.accountType === AccountType.ContractStorage) {
+        else if (wrappedEVMAccount.accountType === AccountType.ContractStorage)
             preRunTxState._transactionState.insertFirstContractStorageReads(address, wrappedEVMAccount.key, wrappedEVMAccount.value);
-        }
     }
     if (transaction.to == null) {
         // console.log(JSON.stringify({ status: true, message: `creating new account`, wrappedStates }))

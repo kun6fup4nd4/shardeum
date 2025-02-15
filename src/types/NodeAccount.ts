@@ -20,9 +20,8 @@ export interface NodeAccount extends BaseAccount {
     rewardRate: bigint;
 }
 export function serializeNodeAccount(stream: VectorBufferStream, obj: NodeAccount, type: TypeIdentifierEnum, root = false): void {
-    if (root) {
+    if (root)
         stream.writeUInt16(type);
-    }
     stream.writeUInt8(cNodeAccountVersion);
     serializeBaseAccount(stream, obj, false);
     stream.writeString(obj.id);
@@ -33,9 +32,8 @@ export function serializeNodeAccount(stream: VectorBufferStream, obj: NodeAccoun
         stream.writeUInt8(1); // true flag
         stream.writeString(obj.nominator);
     }
-    else {
+    else
         stream.writeUInt8(0); // false flag
-    }
     stream.writeString(obj.stakeLock.toString());
     stream.writeBigUInt64(BigInt(obj.stakeTimestamp.toString()));
     stream.writeString(obj.reward.toString());
@@ -48,19 +46,17 @@ export function serializeNodeAccount(stream: VectorBufferStream, obj: NodeAccoun
 }
 export function deserializeNodeAccount(stream: VectorBufferStream): NodeAccount {
     const version = stream.readUInt8();
-    if (version > cNodeAccountVersion) {
+    if (version > cNodeAccountVersion)
         throw new Error('NodeAccount version mismatch');
-    }
     const baseAccount = deserializeBaseAccount(stream);
     const id = stream.readString();
     const hash = stream.readString();
     const timestamp = Number(stream.readBigUInt64());
     // Deserialize nullable string
     let nominator = null;
-    if (stream.readUInt8() === 1) {
+    if (stream.readUInt8() === 1)
         // true flag
         nominator = stream.readString();
-    }
     const stakeLock = BigInt(stream.readString());
     const stakeTimestamp = Number(stream.readBigUInt64());
     const reward = BigInt(stream.readString());

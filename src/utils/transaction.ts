@@ -13,10 +13,9 @@ const txSenderCache: Map<string, GetTxSenderAddressResult> = new Map();
 let simpleTTL = 0;
 const cacheMaxSize = 20000;
 export function generateTxId(tx): string {
-    if (tx.raw) {
+    if (tx.raw)
         // if it is an evm tx, do not involve attached timestamp in txId calculation
         return hashSignedObj({ raw: tx.raw });
-    }
     // Certain TXs are submitted by more than once node.  It is important
     // that we do not count the signature as part of the hash. otherwise,
     // These TXs will be unique and 4 our of 5 will fail.
@@ -37,16 +36,14 @@ export function getTxSenderAddress(tx: TypedTransaction, txid: string = undefine
     try {
         if (overrideSender != null) {
             const res = { address: overrideSender, isValid: true, gasValid: true };
-            if (txid != null) {
+            if (txid != null)
                 txSenderCache.set(txid, res);
-            }
             return res;
         }
         if (txid != null) {
             const cached = txSenderCache.get(txid);
-            if (cached != null) {
+            if (cached != null)
                 return cached;
-            }
         }
         const rawTx = '0x' + toHexString(tx.serialize());
         const { address, isValid, gasValid } = getSenderAddress(rawTx);
@@ -65,9 +62,8 @@ export function getTxSenderAddress(tx: TypedTransaction, txid: string = undefine
         if (logFlags.dapp_verbose)
             console.error('Error getting sender address from tx', e);
         const res = { address: null, isValid: false, gasValid: false };
-        if (txid != null) {
+        if (txid != null)
             txSenderCache.set(txid, res);
-        }
         return res;
     }
 }

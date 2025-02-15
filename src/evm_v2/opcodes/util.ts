@@ -12,13 +12,11 @@ const MASK_160 = (BigInt(1) << BigInt(160)) - BigInt(1);
  * @param value Uint8Array which we want to pad
  */
 export function setLengthLeftStorage(value: Uint8Array): Uint8Array {
-    if (equalsBytes(value, new Uint8Array(value.length))) {
+    if (equalsBytes(value, new Uint8Array(value.length)))
         // return the empty Uint8Array (the value is zero)
         return new Uint8Array(0);
-    }
-    else {
+    else
         return setLengthLeft(value, 32);
-    }
 }
 /**
  * Wraps error message as EvmError
@@ -66,13 +64,11 @@ export function divCeil(a: bigint, b: bigint): bigint {
  */
 export function getDataSlice(data: Uint8Array, offset: bigint, length: bigint): Uint8Array {
     const len = BigInt(data.length);
-    if (offset > len) {
+    if (offset > len)
         offset = len;
-    }
     let end = offset + length;
-    if (end > len) {
+    if (end > len)
         end = len;
-    }
     data = data.subarray(Number(offset), Number(end));
     // Right-pad with zeros to fill dataLength bytes
     data = setLengthRight(data, Number(length));
@@ -127,9 +123,8 @@ export function maxCallGas(gasLimit: bigint, gasLeft: bigint, runState: RunState
         const gasAllowed = gasLeft - gasLeft / BigInt(64);
         return gasLimit > gasAllowed ? gasAllowed : gasLimit;
     }
-    else {
+    else
         return gasLimit;
-    }
 }
 /**
  * Subtracts the amount needed for memory usage from `runState.gasLeft`
@@ -162,9 +157,8 @@ export function writeCallOutput(runState: RunState, outOffset: bigint, outLength
     if (returnData.length > 0) {
         const memOffset = Number(outOffset);
         let dataLength = Number(outLength);
-        if (BigInt(returnData.length) < dataLength) {
+        if (BigInt(returnData.length) < dataLength)
             dataLength = returnData.length;
-        }
         const data = getDataSlice(returnData, BigInt(0), BigInt(dataLength));
         runState.memory.extend(memOffset, dataLength);
         runState.memory.write(memOffset, dataLength, data);
@@ -184,7 +178,7 @@ export function updateSstoreGas(runState: RunState, currentStorage: Uint8Array, 
         runState.interpreter.refundGas(common.param('gasPrices', 'sstoreRefund'), 'updateSstoreGas');
         return gas;
     }
-    else {
+    else
         /*
           The situations checked above are:
           -> Value/Slot are both 0
@@ -193,13 +187,11 @@ export function updateSstoreGas(runState: RunState, currentStorage: Uint8Array, 
           Thus, the remaining case is where value is nonzero, but slot is zero, which is this clause
         */
         return common.param('gasPrices', 'sstoreSet');
-    }
 }
 export function mod(a: bigint, b: bigint): bigint {
     let r = a % b;
-    if (r < BigInt(0)) {
+    if (r < BigInt(0))
         r = b + r;
-    }
     return r;
 }
 export function fromTwos(a: bigint): bigint {
@@ -209,18 +201,16 @@ export function toTwos(a: bigint): bigint {
     return BigInt.asUintN(256, a);
 }
 export function abs(a: bigint): bigint {
-    if (a > 0) {
+    if (a > 0)
         return a;
-    }
     return a * BigInt(-1);
 }
 const N = BigInt(115792089237316195423570985008687907853269984665640564039457584007913129639936);
 export function exponentiation(bas: bigint, exp: bigint): bigint {
     let t = BigInt(1);
     while (exp > BigInt(0)) {
-        if (exp % BigInt(2) !== BigInt(0)) {
+        if (exp % BigInt(2) !== BigInt(0))
             t = (t * bas) % N;
-        }
         bas = (bas * bas) % N;
         exp = exp / BigInt(2);
     }

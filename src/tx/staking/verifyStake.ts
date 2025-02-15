@@ -59,12 +59,11 @@ export function verifyStakeTx(appData: any, senderAddress: Address, wrappedState
             }
         }
     }
-    if (!success) {
+    if (!success)
         return {
             success,
             reason,
         };
-    }
     const isTicketTypesEnabled = ShardeumFlags.ticketTypesEnabled;
     if (isTicketTypesEnabled) {
         const doesNominatorHaveTicketTypeResponse: {
@@ -72,16 +71,15 @@ export function verifyStakeTx(appData: any, senderAddress: Address, wrappedState
             reason: string;
             enabled: boolean;
         } = doesTransactionSenderHaveTicketType({ ticketType: TicketTypes.SILVER, senderAddress });
-        if (doesNominatorHaveTicketTypeResponse.enabled && !doesNominatorHaveTicketTypeResponse.success) {
+        if (doesNominatorHaveTicketTypeResponse.enabled && !doesNominatorHaveTicketTypeResponse.success)
             return {
                 success: doesNominatorHaveTicketTypeResponse.success,
                 reason: doesNominatorHaveTicketTypeResponse.reason
             };
-        }
     }
     const nominatorAccount = wrappedStates[toShardusAddress(stakeCoinsTx.nominator, AccountType.Account)]
         .data as WrappedEVMAccount;
-    if (nomineeAccount) {
+    if (nomineeAccount)
         if (nomineeAccount.nominator &&
             nomineeAccount.nominator.toLowerCase() !== stakeCoinsTx.nominator.toLowerCase()) {
             return {
@@ -89,8 +87,7 @@ export function verifyStakeTx(appData: any, senderAddress: Address, wrappedState
                 reason: `This node is already staked by another account!`,
             };
         }
-    }
-    if (nominatorAccount.operatorAccountInfo) {
+    if (nominatorAccount.operatorAccountInfo)
         if (nominatorAccount.operatorAccountInfo.nominee) {
             if (nominatorAccount.operatorAccountInfo.nominee.toLowerCase() !== stakeCoinsTx.nominee.toLowerCase())
                 return {
@@ -98,7 +95,6 @@ export function verifyStakeTx(appData: any, senderAddress: Address, wrappedState
                     reason: `This account has already staked to a different node.`,
                 };
         }
-    }
     return {
         success: true,
         reason: '',
@@ -127,7 +123,7 @@ export function verifyUnstakeTx(appData: any, senderAddress: Address, wrappedSta
         success = false;
         reason = `This sender account is not found!`;
     }
-    else if (nomineeAccount) {
+    else if (nomineeAccount)
         if (!nomineeAccount.nominator) {
             success = false;
             reason = `No one has staked to this account!`;
@@ -167,7 +163,6 @@ export function verifyUnstakeTx(appData: any, senderAddress: Address, wrappedSta
             success = false;
             reason = `No reward endTime set, can't unstake node yet`;
         }
-    }
     else {
         success = false;
         reason = `This nominee node is not found!`;
@@ -188,42 +183,38 @@ export function isStakeUnlocked(nominatorAccount: WrappedEVMAccount, nomineeAcco
     const currentTime = shardus.shardusGetTime();
     // SLT from time of last staking or unstaking
     const timeSinceLastStake = currentTime - nominatorAccount.operatorAccountInfo.lastStakeTimestamp;
-    if (timeSinceLastStake < stakeLockTime) {
+    if (timeSinceLastStake < stakeLockTime)
         return {
             unlocked: false,
             reason: 'Stake lock period active from last staking/unstaking action.',
             remainingTime: stakeLockTime - timeSinceLastStake,
         };
-    }
     // SLT from when node was selected to go active (started syncing)
     const node = shardus.getNodeByPubKey(nomineeAccount.id);
     if (node) {
         const timeSinceSyncing = currentTime - node.syncingTimestamp * 1000;
-        if (timeSinceSyncing < stakeLockTime) {
+        if (timeSinceSyncing < stakeLockTime)
             return {
                 unlocked: false,
                 reason: 'Stake lock period active from node starting to sync.',
                 remainingTime: stakeLockTime - timeSinceSyncing,
             };
-        }
     }
     const timeSinceActive = currentTime - nomineeAccount.rewardStartTime * 1000;
-    if (timeSinceActive < stakeLockTime) {
+    if (timeSinceActive < stakeLockTime)
         return {
             unlocked: false,
             reason: 'Stake lock period active from last active state.',
             remainingTime: stakeLockTime - timeSinceActive,
         };
-    }
     // SLT from time of last went active
     const timeSinceInactive = currentTime - nomineeAccount.rewardEndTime * 1000;
-    if (timeSinceInactive < stakeLockTime) {
+    if (timeSinceInactive < stakeLockTime)
         return {
             unlocked: false,
             reason: 'Stake lock period active from last inactive/exit state.',
             remainingTime: stakeLockTime - timeSinceInactive,
         };
-    }
     // SLT from time of last went inactive/exit
     return {
         unlocked: true,

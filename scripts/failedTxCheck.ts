@@ -68,12 +68,10 @@ for (let i = 2; i < process.argv.length; i++) {
             process.exit(1);
         }
     }
-    else if (process.argv[i] === '--color') {
+    else if (process.argv[i] === '--color')
         useAnsiColors = true;
-    }
-    else if (!process.argv[i].startsWith('-')) {
+    else if (!process.argv[i].startsWith('-'))
         dbPath = process.argv[i];
-    }
 }
 // Remove any NaN values that might have been introduced
 excludedAccountTypes = excludedAccountTypes.filter(num => !isNaN(num));
@@ -128,32 +126,29 @@ async function filterFailedTransactions(): Promise<void> {
     FROM transactions
     WHERE JSON_EXTRACT(data, '$.readableReceipt.status') = 0
   `;
-    if (cycleRange.length > 0) {
+    if (cycleRange.length > 0)
         if (cycleRange.length === 1) {
             queryString += ` AND cycleNumber >= ${cycleRange[0]}`;
         }
         else {
             queryString += ` AND cycleNumber >= ${cycleRange[0]} AND cycleNumber <= ${cycleRange[1]}`;
         }
-    }
     queryString += ' ORDER BY cycleNumber, timestamp';
     const transactions = await runQuery(db, queryString);
     const failedTxsByAccount = new Map<string, any[]>();
     for (const tx of transactions) {
         const txData = JSON.parse(tx.data);
         // Skip excluded AccountTypes
-        if (excludedAccountTypes.includes(txData.accountType)) {
+        if (excludedAccountTypes.includes(txData.accountType))
             continue;
-        }
         const fromAddress = txData.txFrom || txData.readableReceipt?.from;
         const toAddress = txData.txTo || txData.readableReceipt?.to;
         const nonce = parseInt(txData.readableReceipt?.nonce || '0', 16);
         const accountType = txData.accountType;
         const reason = txData.readableReceipt?.reason || 'Unknown reason';
         if (fromAddress) {
-            if (!failedTxsByAccount.has(fromAddress)) {
+            if (!failedTxsByAccount.has(fromAddress))
                 failedTxsByAccount.set(fromAddress, []);
-            }
             failedTxsByAccount.get(fromAddress)!.push({
                 txId: tx.txId,
                 toAddress,

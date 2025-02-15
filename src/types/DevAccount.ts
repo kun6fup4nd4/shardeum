@@ -8,9 +8,8 @@ export interface DevAccount extends BaseAccount {
     timestamp: number;
 }
 export function serializeDevAccount(stream: VectorBufferStream, obj: DevAccount, root = false): void {
-    if (root) {
+    if (root)
         stream.writeUInt16(TypeIdentifierEnum.cDevAccount);
-    }
     stream.writeUInt8(cDevAccountVersion);
     serializeBaseAccount(stream, obj, false);
     stream.writeString(obj.id);
@@ -19,9 +18,8 @@ export function serializeDevAccount(stream: VectorBufferStream, obj: DevAccount,
 }
 export function deserializeDevAccount(stream: VectorBufferStream): DevAccount {
     const version = stream.readUInt8();
-    if (version > cDevAccountVersion) {
+    if (version > cDevAccountVersion)
         throw new Error('DevAccount version mismatch');
-    }
     const baseAccount = deserializeBaseAccount(stream);
     const id = stream.readString();
     const hash = stream.readString();
